@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 
+from heterogeneity.metrics.utils import compute_distributions, compute_counts
 
 # Maybe partitioner is the better abstraction
 
 def hellinger_distance(fds, split):
     """Calculate Hellinger distance from all the partitions in FederatedDataset."""
-    dataset = fds.load_full(split)
+    dataset = fds.load_split(split)
     all_labels = dataset.features["label"].str2int(dataset.features["label"].names)
 
     partitions = []
@@ -14,24 +15,12 @@ def hellinger_distance(fds, split):
         partitions.append(fds.load_partition(i))
 
     # Calculate global distribution
-    labels_series = pd.Series(dataset['label'])
-    label_counts = labels_series.value_counts()
-    label_counts_with_zeros = pd.Series(index=all_labels, data=0)
-    label_counts_with_zeros = label_counts_with_zeros.add(label_counts,
-                                                          fill_value=0).astype(int)
-    partition_size = len(dataset)
-    global_distribution = label_counts_with_zeros / partition_size
+    global_distribution = compute_distributions(dataset['label'], all_labels)
 
-    # Calculate distributions for each client
+    # Calculate (local) distribution for each client
     distributions = []
     for partition in partitions:
-        labels_series = pd.Series(partition['label'])
-        label_counts = labels_series.value_counts()
-        label_counts_with_zeros = pd.Series(index=all_labels, data=0)
-        label_counts_with_zeros = label_counts_with_zeros.add(label_counts,
-                                                              fill_value=0).astype(int)
-        partition_size = len(partition)
-        distribution = label_counts_with_zeros / partition_size
+        distribution = compute_distributions(partition['label'], all_labels)
         distributions.append(distribution)
 
     # Calculate Hellinger Distance
