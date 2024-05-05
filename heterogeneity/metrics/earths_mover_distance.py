@@ -1,10 +1,15 @@
+from typing import List, Tuple
+
 from heterogeneity.metrics.utils import compute_counts, compute_distributions
 from flwr_datasets.partitioner import Partitioner
 import numpy as np
 from scipy.stats import wasserstein_distance
 
 
-def compute_earths_mover_distance(partitioner: Partitioner, label_name: str=None, aggregation_type: str = None):
+def compute_earths_mover_distance(
+        partitioner: Partitioner,
+        label_name: str = "label",
+        aggregation_type: str = None) -> Tuple[List[float], float]:
     """
 
     Parameters
@@ -18,7 +23,8 @@ def compute_earths_mover_distance(partitioner: Partitioner, label_name: str=None
 
     """
     dataset = partitioner.dataset
-    all_labels = dataset.features["label"].str2int(dataset.features["label"].names)
+    all_labels = dataset.features[label_name].str2int(
+        dataset.features[label_name].names)
 
     partitions = []
     for i in range(partitioner.num_partitions):
@@ -35,7 +41,8 @@ def compute_earths_mover_distance(partitioner: Partitioner, label_name: str=None
 
     partitions_earths_mover_distance = []
     for partition in partitions:
-        emd = wasserstein_distance(dataset["label"], partition["label"])
+        emd = wasserstein_distance(dataset[label_name], partition[label_name])
         partitions_earths_mover_distance.append(emd)
 
-    return partitions_earths_mover_distance, np.average(partitions_earths_mover_distance, weights=list(map(len, partitions)))
+    return partitions_earths_mover_distance, np.average(
+        partitions_earths_mover_distance, weights=list(map(len, partitions)))

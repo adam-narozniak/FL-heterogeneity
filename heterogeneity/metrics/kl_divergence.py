@@ -3,7 +3,7 @@ from flwr_datasets.partitioner import Partitioner
 import numpy as np
 
 
-def compute_kl_divergence(partitioner: Partitioner, label_name: str = None,
+def compute_kl_divergence(partitioner: Partitioner, label_name: str = "label",
                           method: str = None, aggregation_type: str = None):
     """
 
