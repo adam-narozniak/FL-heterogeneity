@@ -3,12 +3,13 @@ import pandas as pd
 
 from heterogeneity.metrics.utils import compute_distributions, compute_counts
 
+
 # Maybe partitioner is the better abstraction
 
-def compute_hellinger_distance(fds, split, label_name=None):
+def compute_hellinger_distance(fds, split, label_name: str = "label"):
     """Calculate Hellinger distance from all the partitions in FederatedDataset."""
     dataset = fds.load_split(split)
-    all_labels = dataset.features["label"].str2int(dataset.features["label"].names)
+    all_labels = dataset.features[label_name].str2int(dataset.features[label_name].names)
 
     partitions = []
     for i in range(fds._partitioners[split]._num_partitions):
