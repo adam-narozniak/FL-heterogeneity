@@ -3,21 +3,21 @@ import json
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from flwr_datasets import FederatedDataset
-from flwr_datasets.partitioner import NaturalIdPartitioner
 
-from configs.run_configs import run_config
-from configs.partitioner_configs import *
 from configs.fds_configs import *
 from configs.metrics_configs import *
+from configs.partitioner_configs import *
 
-if __name__ == "__main__":
-    # have a run config: n_repeats etc
 
+def run_experiments_from_configs(natural_id_run: bool = False):
     # iterate over all configs/some other specification
     # save the results of each of the runs
-    for fds_param_grid in natural_datasets_param_grid:
+
+    datasets_param_grid = natural_datasets_param_grid if natural_id_run else (
+        no_natural_datasets_param_grid)
+
+    for fds_param_grid in datasets_param_grid:
         fds_product = itertools.product(
             *(fds_param_grid[key] for key in fds_param_grid))
         fds_single_config_list = [
@@ -26,6 +26,9 @@ if __name__ == "__main__":
         for single_fds in fds_single_config_list:
             print(single_fds)
             split = single_fds.pop("split")
+
+            partitioner_configs = natural_partitioner_configs if natural_id_run else (
+                no_natural_partitioner_configs)
 
             for partitioner_config in partitioner_configs:
                 print(partitioner_config)
@@ -85,3 +88,7 @@ if __name__ == "__main__":
                 with open(save_results_dir_path, "w") as file:
                     json.dump(metrics_avg_results, file, indent=4)
                 print(f"Metrics saved in {save_results_dir_path}")
+
+
+if __name__ == "__main__":
+    run_experiments_from_configs(natural_id_run=False)

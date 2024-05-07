@@ -40,6 +40,8 @@ config_natural_id_partitioner = {
 #     }
 # }
 
-partitioner_configs = [config_natural_id_partitioner, config_iid_partitioner, config_dirichlet_partitioner,]
+natural_partitioner_configs = [config_natural_id_partitioner]
+
+no_natural_partitioner_configs = [config_iid_partitioner, config_dirichlet_partitioner,]
                        # config_shard_partitioner]  # ,
 # config_inner_dirichlet_partitioner]
