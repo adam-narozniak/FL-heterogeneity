@@ -18,7 +18,8 @@ def compute_earths_mover_distance(partitioner: Partitioner, label_name: str=None
 
     """
     dataset = partitioner.dataset
-    all_labels = dataset.features["label"].str2int(dataset.features["label"].names)
+    # all_labels = dataset.features[label_name].str2int(
+    #     dataset.features[label_name].names)
 
     partitions = []
     for i in range(partitioner.num_partitions):
