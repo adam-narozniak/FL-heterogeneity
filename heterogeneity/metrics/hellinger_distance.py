@@ -1,27 +1,28 @@
 import numpy as np
 import pandas as pd
+from flwr_datasets.partitioner import Partitioner
 
 from heterogeneity.metrics.utils import compute_distributions, compute_counts
 
 
 # Maybe partitioner is the better abstraction
 
-def compute_hellinger_distance(fds, split, label_name: str = "label"):
+def compute_hellinger_distance(partitioner: Partitioner, label_name: str = "label"):
     """Calculate Hellinger distance from all the partitions in FederatedDataset."""
-    dataset = fds.load_split(split)
+    dataset = partitioner.dataset
     all_labels = dataset.features[label_name].str2int(dataset.features[label_name].names)
 
     partitions = []
-    for i in range(fds._partitioners[split]._num_partitions):
-        partitions.append(fds.load_partition(i))
+    for i in range(partitioner.num_partitions):
+        partitions.append(partitioner.load_partition(i))
 
     # Calculate global distribution
-    global_distribution = compute_distributions(dataset['label'], all_labels)
+    global_distribution = compute_distributions(dataset[label_name], all_labels)
 
     # Calculate (local) distribution for each client
     distributions = []
     for partition in partitions:
-        distribution = compute_distributions(partition['label'], all_labels)
+        distribution = compute_distributions(partition[label_name], all_labels)
         distributions.append(distribution)
 
     # Calculate Hellinger Distance
