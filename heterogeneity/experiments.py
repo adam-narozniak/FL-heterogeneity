@@ -112,9 +112,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
 
 if __name__ == "__main__":
-
     print("Non natural id running")
     run_experiments_from_configs(natural_id_run=False)
     print("Natural id partitioning running")
-    run_experiments_from_configs(natural_id_run=False)
+    run_experiments_from_configs(natural_id_run=True)
 
