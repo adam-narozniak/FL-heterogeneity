@@ -67,7 +67,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     for metric_config in metrics_configs:
                         metrics_fnc = metric_config["object"]
                         if label_name is not None:
-                            metric_config["label_name"] = label_name
+                            metric_config["kwargs"]["label_name"] = label_name
                         metrics_kwargs = {"partitioner": partitioner,
                                           **metric_config["kwargs"]}
                         try:
