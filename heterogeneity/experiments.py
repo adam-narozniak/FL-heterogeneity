@@ -63,7 +63,6 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     if "label_name" in fds_kwargs:
                         label_name = fds_kwargs.pop("label_name")
                     fds = FederatedDataset(**fds_kwargs)
-                    fds.load_partition(0)
                     # Different metrics calculation
 
                     for metric_config in metrics_configs:
@@ -75,7 +74,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                                           **metric_config["kwargs"]}
                         print(metrics_kwargs)
                         try:
-
+                            # trigger the assigment of the data
+                            _ = fds.load_partition(0)
                             metric_list, metric_avg = metrics_fnc(**metrics_kwargs)
                             if any([metric_list_val in [np.inf, -np.inf] for
                                     metric_list_val in metric_list]):
