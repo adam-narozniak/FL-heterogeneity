@@ -50,8 +50,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     print(single_partitioner_config)
                     if partitioner_signature is DirichletPartitioner:
                         single_partitioner_config["seed"] = single_fds["seed"]
-                        if "label" in single_fds:
-                            single_partitioner_config["partition_by"] = single_fds["label"]
+                        if "label_name" in single_fds:
+                            single_partitioner_config["partition_by"] = single_fds["label_name"]
                     elif partitioner_signature is NaturalIdPartitioner:
                         single_partitioner_config["partition_by"] = single_fds[
                             "partition_by"]
@@ -60,8 +60,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     if "partition_by" in fds_kwargs:
                         fds_kwargs.pop("partition_by")
                     label_name = None
-                    if "label" in fds_kwargs:
-                        label_name = fds_kwargs.pop("label")
+                    if "label_name" in fds_kwargs:
+                        label_name = fds_kwargs.pop("label_name")
                     fds = FederatedDataset(**fds_kwargs)
                     fds.load_partition(0)
                     # Different metrics calculation
@@ -72,6 +72,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                             metric_config["kwargs"]["label_name"] = label_name
                         metrics_kwargs = {"partitioner": partitioner,
                                           **metric_config["kwargs"]}
+                        print(metrics_kwargs)
                         try:
 
                             metric_list, metric_avg = metrics_fnc(**metrics_kwargs)
@@ -85,14 +86,14 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                         print(metric_avg)
                         if metrics_fnc.__name__ not in metrics_avg_results:
                             metrics_avg_results[metrics_fnc.__name__] = pd.DataFrame(single_partitioner_config, index=[0])
-                            metrics_avg_results[metrics_fnc.__name__]["fds_seed"] = single_fds["seed"]
+                            metrics_avg_results[metrics_fnc.__name__]["fds_seed"] = single_fds.get("seed", "default")
                             metrics_avg_results[metrics_fnc.__name__]["metric_name"] = metrics_fnc.__name__
                             metrics_avg_results[metrics_fnc.__name__][
                                 "metric_value"] = metric_avg
 
                         # metrics_avg_results[metrics_fnc.__name__][
                         #     str(tuple(single_partitioner_config.items()))] = metric_avg
-                        metrics_avg_results[metrics_fnc.__name__].loc[len(metrics_avg_results[metrics_fnc.__name__])] =  [*single_partitioner_config.values(), single_fds["seed"], metrics_fnc.__name__, metric_avg]
+                        metrics_avg_results[metrics_fnc.__name__].loc[len(metrics_avg_results[metrics_fnc.__name__])] =  [*single_partitioner_config.values(), single_fds.get("seed", "default"), metrics_fnc.__name__, metric_avg]
 
                 # save_results_dir_path = (f"../results/{single_fds['dataset']}/"
                 #                          f"{partitioner_signature.__name__}/shuffle_seed_{single_fds.get('seed', 'no_seed')}.json")
@@ -114,8 +115,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
 
 if __name__ == "__main__":
-    print("Non natural id running")
-    run_experiments_from_configs(natural_id_run=False)
+    # print("Non natural id running")
+    # run_experiments_from_configs(natural_id_run=False)
     print("Natural id partitioning running")
     run_experiments_from_configs(natural_id_run=True)
 

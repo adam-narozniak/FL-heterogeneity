@@ -4,14 +4,16 @@ natural_datasets_param_grid = [
         "subset": ["v0.01"],
         "split": ["train"],
         "shuffle": [False],
-        "partition_by": ["speaker_id"]
+        "partition_by": ["speaker_id"],
+        "label_name": ["label"]
 
     },
     {
         "dataset": ["adamnarozniak/femnist"],
         "split": ["train"],
         "shuffle": [False],
-        "partition_by": ["writer_id"]
+        "partition_by": ["writer_id"],
+        "label_name": ["character"]
 
     },
 
@@ -19,28 +21,31 @@ natural_datasets_param_grid = [
         "dataset": ["sentiment140"],
         "split": ["train"],
         "shuffle": [False],
-        "partition_by": ["user"]
+        "partition_by": ["user"],
+        "label_name": ["sentiment"]
 
     },
     {
         "dataset": ["flwrlabs/shakespeare"],
         "split": ["train"],
         "shuffle": [False],
-        "partition_by": ["character_id"]
+        "partition_by": ["character_id"],
+        "label_name": ["y"]
 
     },
 ]
 
 no_natural_datasets_param_grid = [
     {
-        "dataset": ["cifar10", "cifar100", "mnist"],
+        "dataset": ["cifar10", "mnist"],
+        "label_name": ["label"],
         "split": ["train"],
         "shuffle": [True],
         "seed": list(range(42, 47))
     },
     {
         "dataset": ["cifar100"],
-        "label": ["fine_label"],
+        "label_name": ["fine_label"],
         "split": ["train"],
         "shuffle": [True],
         "seed": list(range(42, 47))
