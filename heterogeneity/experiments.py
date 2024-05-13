@@ -50,6 +50,8 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     print(single_partitioner_config)
                     if partitioner_signature is DirichletPartitioner:
                         single_partitioner_config["seed"] = single_fds["seed"]
+                        if "label" in single_fds:
+                            single_partitioner_config["partition_by"] = single_fds["label"]
                     elif partitioner_signature is NaturalIdPartitioner:
                         single_partitioner_config["partition_by"] = single_fds[
                             "partition_by"]
