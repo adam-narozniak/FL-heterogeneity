@@ -10,7 +10,10 @@ from heterogeneity.metrics.utils import compute_distributions, compute_counts
 def compute_hellinger_distance(partitioner: Partitioner, label_name: str = "label"):
     """Calculate Hellinger distance from all the partitions in FederatedDataset."""
     dataset = partitioner.dataset
-    all_labels = dataset.features[label_name].str2int(dataset.features[label_name].names)
+    try:
+        all_labels = dataset.features[label_name].str2int(dataset.features[label_name].names)
+    except AttributeError: # Happens when the column in Value instaed of Label
+        all_labels = dataset.unique(label_name)
 
     partitions = []
     for i in range(partitioner.num_partitions):
