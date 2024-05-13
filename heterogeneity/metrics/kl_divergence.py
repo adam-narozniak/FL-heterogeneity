@@ -18,19 +18,19 @@ def compute_kl_divergence(partitioner: Partitioner, label_name: str = "label",
 
     """
     dataset = partitioner.dataset
-    all_labels = dataset.features["label"].str2int(dataset.features["label"].names)
+    all_labels = dataset.features[label_name].str2int(dataset.features[label_name].names)
 
     partitions = []
     for i in range(partitioner.num_partitions):
         partitions.append(partitioner.load_partition(i))
 
     # Calculate global distribution
-    global_distribution = compute_distributions(dataset['label'], all_labels)
+    global_distribution = compute_distributions(dataset[label_name], all_labels)
 
     # Calculate (local) distribution for each client
     local_distributions = []
     for partition in partitions:
-        distribution = compute_distributions(partition['label'], all_labels)
+        distribution = compute_distributions(partition[label_name], all_labels)
         local_distributions.append(distribution)
 
     partitions_kl = []
