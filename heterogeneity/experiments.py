@@ -1,5 +1,4 @@
 import itertools
-import json
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +8,7 @@ from flwr_datasets import FederatedDataset
 from configs.fds_configs import *
 from configs.metrics_configs import *
 from configs.partitioner_configs import *
+from heterogeneity.utils import create_lognormal_partition_sizes
 
 
 def run_experiments_from_configs(natural_id_run: bool = False):
@@ -48,6 +48,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
                 for single_partitioner_config in single_partitioner_config_list:
                     print(single_partitioner_config)
+                    additional_to_save = None
                     if partitioner_signature is DirichletPartitioner:
                         single_partitioner_config["seed"] = single_fds["seed"]
                         if "label_name" in single_fds:
@@ -55,7 +56,17 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     elif partitioner_signature is NaturalIdPartitioner:
                         single_partitioner_config["partition_by"] = single_fds[
                             "partition_by"]
-                    partitioner = partitioner_signature(**single_partitioner_config)
+                    if partitioner_signature is InnerDirichletPartitioner:
+                        single_partitioner_config["partition_sizes"] = create_lognormal_partition_sizes(single_fds["dataset"], single_partitioner_config["num_partitions"], single_partitioner_config["sigma"])
+                        additional_to_save = {}
+                        additional_to_save["sigma"] =  single_partitioner_config.pop("sigma")
+                        additional_to_save["num_partitions"] = single_partitioner_config.pop("num_partitions")
+                        partitioner = partitioner_signature(**single_partitioner_config)
+                        single_partitioner_config["sigma"] = additional_to_save["sigma"]
+                        single_partitioner_config["num_partitions"] = additional_to_save["num_partitions"]
+                        single_partitioner_config.pop("partition_sizes")
+                    else:
+                        partitioner = partitioner_signature(**single_partitioner_config)
                     fds_kwargs = {**single_fds, "partitioners": {split: partitioner}}
                     if "partition_by" in fds_kwargs:
                         fds_kwargs.pop("partition_by")

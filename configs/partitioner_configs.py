@@ -36,6 +36,7 @@ config_inner_dirichlet_partitioner = {
     "param_grid": {
         "alpha": [0.1, 0.3, 1., 3., 10., 100., 1000.],
         "sigma": [0.1, 0.3, 1., 3.],
+        "num_partitions": [3, 10, 30, 100, 300, 1000],
         "partition_by": ["label"]
     }
 }
