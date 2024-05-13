@@ -99,9 +99,17 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     save_results_dir_path = (f"../results/{single_fds['dataset']}/"
                                                                       f"{partitioner_signature.__name__}/{name}.csv")
                     save_results_dir_path = Path(save_results_dir_path)
+                    include_header = True
+                    if save_results_dir_path.exists():
+                        include_header = False
                     save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
-                    value.to_csv(save_results_dir_path, index=True, mode="a")
+                    value.to_csv(save_results_dir_path, index=True, mode="a", header=include_header)
 
 
 if __name__ == "__main__":
+
+    print("Non natural id running")
     run_experiments_from_configs(natural_id_run=False)
+    print("Natural id partitioning running")
+    run_experiments_from_configs(natural_id_run=False)
+
