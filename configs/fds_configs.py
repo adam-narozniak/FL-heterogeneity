@@ -38,6 +38,13 @@ no_natural_datasets_param_grid = [
         "shuffle": [True],
         "seed": list(range(42, 47))
     },
+    {
+        "dataset": ["cifar100"],
+        "label": ["fine_label"],
+        "split": ["train"],
+        "shuffle": [True],
+        "seed": list(range(42, 47))
+    },
 ]
 # Add the natural_id datasets to the simulate the division on them
 for natural_dataset_param_grid in natural_datasets_param_grid:

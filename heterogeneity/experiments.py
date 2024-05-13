@@ -57,12 +57,17 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     fds_kwargs = {**single_fds, "partitioners": {split: partitioner}}
                     if "partition_by" in fds_kwargs:
                         fds_kwargs.pop("partition_by")
+                    label_name = None
+                    if "label" in fds_kwargs:
+                        label_name = fds_kwargs.pop("label")
                     fds = FederatedDataset(**fds_kwargs)
                     fds.load_partition(0)
                     # Different metrics calculation
 
                     for metric_config in metrics_configs:
                         metrics_fnc = metric_config["object"]
+                        if label_name is not None:
+                            metric_config["label_name"] = label_name
                         metrics_kwargs = {"partitioner": partitioner,
                                           **metric_config["kwargs"]}
                         try:
@@ -103,7 +108,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
                     if save_results_dir_path.exists():
                         include_header = False
                     save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
-                    value.to_csv(save_results_dir_path, index=True, mode="a", header=include_header)
+                    value.to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
 
 
 if __name__ == "__main__":
