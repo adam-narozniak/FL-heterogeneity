@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from flwr_datasets import FederatedDataset
 
 from configs.fds_configs import *
@@ -76,18 +77,30 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
                         print(metric_avg)
                         if metrics_fnc.__name__ not in metrics_avg_results:
-                            metrics_avg_results[metrics_fnc.__name__] = {}
-                        metrics_avg_results[metrics_fnc.__name__][
-                            str(tuple(single_partitioner_config.items()))] = metric_avg
+                            metrics_avg_results[metrics_fnc.__name__] = pd.DataFrame(single_partitioner_config, index=[0])
+                            metrics_avg_results[metrics_fnc.__name__]["fds_seed"] = single_fds["seed"]
+                            metrics_avg_results[metrics_fnc.__name__]["metric_name"] = metrics_fnc.__name__
+                            metrics_avg_results[metrics_fnc.__name__][
+                                "metric_value"] = metric_avg
 
-                save_results_dir_path = (f"../results/{single_fds['dataset']}/"
-                                         f"{partitioner_signature.__name__}/shuffle_seed_{single_fds.get('seed', 'no_seed')}.json")
-                save_results_dir_path = Path(save_results_dir_path)
-                save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
-                # pd.DataFrame(metrics_avg_results).to_csv(save_results_dir_path)
-                with open(save_results_dir_path, "w") as file:
-                    json.dump(metrics_avg_results, file, indent=4)
-                print(f"Metrics saved in {save_results_dir_path}")
+                        # metrics_avg_results[metrics_fnc.__name__][
+                        #     str(tuple(single_partitioner_config.items()))] = metric_avg
+                        metrics_avg_results[metrics_fnc.__name__].loc[len(metrics_avg_results[metrics_fnc.__name__])] =  [*single_partitioner_config.values(), single_fds["seed"], metrics_fnc.__name__, metric_avg]
+
+                # save_results_dir_path = (f"../results/{single_fds['dataset']}/"
+                #                          f"{partitioner_signature.__name__}/shuffle_seed_{single_fds.get('seed', 'no_seed')}.json")
+                # save_results_dir_path = Path(save_results_dir_path)
+                # save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
+                # # pd.DataFrame(metrics_avg_results).to_csv(save_results_dir_path)
+                # with open(save_results_dir_path, "w") as file:
+                #     json.dump(metrics_avg_results, file, indent=4)
+                # print(f"Metrics saved in {save_results_dir_path}")
+                for name, value in metrics_avg_results.items():
+                    save_results_dir_path = (f"../results/{single_fds['dataset']}/"
+                                                                      f"{partitioner_signature.__name__}/{name}.csv")
+                    save_results_dir_path = Path(save_results_dir_path)
+                    save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
+                    value.to_csv(save_results_dir_path, index=True, mode="a")
 
 
 if __name__ == "__main__":
