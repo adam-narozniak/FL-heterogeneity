@@ -8,14 +8,14 @@ natural_datasets_param_grid = [
         "label_name": ["label"]
 
     },
-    {
-        "dataset": ["adamnarozniak/femnist"],
-        "split": ["train"],
-        "shuffle": [False],
-        "partition_by": ["writer_id"],
-        "label_name": ["character"]
-
-    },
+    # {
+    #     "dataset": ["adamnarozniak/femnist"],
+    #     "split": ["train"],
+    #     "shuffle": [False],
+    #     "partition_by": ["writer_id"],
+    #     "label_name": ["character"]
+    #
+    # },
 
     {
         "dataset": ["sentiment140"],
