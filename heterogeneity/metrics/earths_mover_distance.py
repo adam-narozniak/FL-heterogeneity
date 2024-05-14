@@ -40,8 +40,18 @@ def compute_earths_mover_distance(
     #     local_distributions.append(distribution)
 
     partitions_earths_mover_distance = []
+    all_labels = dataset[label_name]
+    use_encoder = False
+    if isinstance(all_labels[0], str):
+        from sklearn.preprocessing import LabelEncoder
+        label_encoder = LabelEncoder()
+        all_labels = label_encoder.fit_transform(all_labels)
+        use_encoder = True
     for partition in partitions:
-        emd = wasserstein_distance(dataset[label_name], partition[label_name])
+        partition_labels = partition[label_name]
+        if use_encoder:
+            partition_labels = label_encoder.transform(partition_labels)
+        emd = wasserstein_distance(all_labels, partition_labels)
         partitions_earths_mover_distance.append(emd)
 
     return partitions_earths_mover_distance, np.average(
