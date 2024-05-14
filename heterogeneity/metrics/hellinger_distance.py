@@ -15,18 +15,21 @@ def compute_hellinger_distance(partitioner: Partitioner, label_name: str = "labe
     except AttributeError: # Happens when the column in Value instaed of Label
         all_labels = dataset.unique(label_name)
 
-    partitions = []
-    for i in range(partitioner.num_partitions):
-        partitions.append(partitioner.load_partition(i))
+    # partitions = []
+    # for i in range(partitioner.num_partitions):
+    #     partitions.append(partitioner.load_partition(i))
 
     # Calculate global distribution
     global_distribution = compute_distributions(dataset[label_name], all_labels)
 
     # Calculate (local) distribution for each client
     distributions = []
-    for partition in partitions:
+    sizes = []
+    for i in range(partitioner.num_partitions):
+        partition = partitioner.load_partition(i)
         distribution = compute_distributions(partition[label_name], all_labels)
         distributions.append(distribution)
+        sizes.append(len(partition))
 
     # Calculate Hellinger Distance
     sqrt_global_distribution = np.sqrt(global_distribution)
@@ -39,5 +42,4 @@ def compute_hellinger_distance(partitioner: Partitioner, label_name: str = "labe
         hellinger_distance = np.sqrt(np.sum(diff_power_2) / 2)
         hellinger_distances.append(hellinger_distance)
 
-    return hellinger_distances, np.average(hellinger_distances,
-                                           weights=list(map(len, partitions)))
+    return hellinger_distances, np.average(hellinger_distances, weights=sizes)
