@@ -12,4 +12,4 @@ metrics_hellinger = {
 metrics_kl = {
     "object": compute_kl_divergence, "kwargs": {"label_name": "label"}
 }
-metrics_configs = [metrics_earths_mover, metrics_hellinger, metrics_kl]
+metrics_configs = [metrics_hellinger]  # metrics_earths_mover, metrics_kl]
