@@ -11,12 +11,11 @@ from configs.partitioner_configs import *
 from heterogeneity.utils import create_lognormal_partition_sizes
 
 
-def run_experiments_from_configs(natural_id_run: bool = False):
+def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
     # iterate over all configs/some other specification
     # save the results of each of the runs
 
-    datasets_param_grid = natural_datasets_param_grid if natural_id_run else (
-        no_natural_datasets_param_grid)
+
 
     for fds_param_grid in datasets_param_grid:
         fds_product = itertools.product(
@@ -28,10 +27,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
             print(single_fds)
             split = single_fds.pop("split")
 
-            partitioner_configs = natural_partitioner_configs if natural_id_run else (
-                no_natural_partitioner_configs)
-
-            for partitioner_config in partitioner_configs:
+            for partitioner_config in partitioner_param_grid:
                 print(partitioner_config)
                 partitioner_signature = partitioner_config["object"]
                 param_grid = partitioner_config["param_grid"]
@@ -48,7 +44,7 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
                 for single_partitioner_config in single_partitioner_config_list:
                     additional_to_save = None
-                    if partitioner_signature in [DirichletPartitioner, ShardPartitioner]:
+                    if partitioner_signature in [DirichletPartitioner, ShardPartitioner, ClassConstrainedPartitioner]:
                         single_partitioner_config["seed"] = single_fds["seed"]
                         if "partition_by" in single_fds:
                             single_partitioner_config["partition_by"] = single_fds["partition_by"]
@@ -133,8 +129,24 @@ def run_experiments_from_configs(natural_id_run: bool = False):
 
 
 if __name__ == "__main__":
-    print("Non natural id running")
-    run_experiments_from_configs(natural_id_run=False)
-    # print("Natural id partitioning running")
-    # run_experiments_from_configs(natural_id_run=True)
+
+    MODE: str = "CUSTOM"
+    if MODE == "NATURAL_ID":
+        print("Running NATURAL_ID")
+        dataset_param_grid = natural_datasets_param_grid
+        partitioner_param_grid = natural_partitioner_configs
+    elif MODE == "NO_NATURAL_ID":
+        print("Running NO_NATURAL_ID")
+        dataset_param_grid = no_natural_datasets_param_grid
+        partitioner_param_grid = no_natural_partitioner_configs
+    elif MODE == "CUSTOM":
+        dataset_param_grid = [config_femnist]
+        partitioner_param_grid = [ config_class_constrained]
+    else:
+        raise ValueError("incorrect mode name")
+
+    run_experiments_from_configs(
+        datasets_param_grid=dataset_param_grid,
+        partitioner_param_grid=partitioner_param_grid
+    )
 
