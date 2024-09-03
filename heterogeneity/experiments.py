@@ -128,7 +128,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                                 metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = run_fl_experiment(n_comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dataloader, net, seed=fl_seed)
                             except ValueError as e:
                                 print(f"Failed to load partitions: {e}")
-                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = np.nan, np.nan, np.nan, np.nan, np.nan
+                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = np.nan, np.nan, np.nan, np.nan, {"eval_loss": np.nan, "eval_acc": np.nan} #"best_communication_round": np.nan
                             finally:
                                 metrics_to_save = [metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res]
                                 metrics_names = ["metrics_train_list", "metrics_eval_list", "metrics_aggregated_train_list", "metrics_aggregated_eval_list", "test_res"]
