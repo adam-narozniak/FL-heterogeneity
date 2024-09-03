@@ -1,16 +1,14 @@
-from cgi import test
 import itertools
 from pathlib import Path
 
-from matplotlib import transforms
 import numpy as np
 import pandas as pd
 from flwr_datasets import FederatedDataset
 
 from configs.fl_configs import fl_configs
-from configs.fds_configs import no_natural_datasets_param_grid, natural_datasets_param_grid, config_femnist, config_mnist, config_cifar10
+from configs.fds_configs import no_natural_datasets_param_grid, natural_datasets_param_grid, config_femnist, config_mnist, config_cifar10, config_cifar100
 from configs.metrics_configs import metrics_configs
-from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_class_constrained, config_iid_partitioner, ClassConstrainedPartitioner
+from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_class_constrained, config_iid_partitioner, ClassConstrainedPartitioner, config_dirichlet_partitioner
 from heterogeneity.fl.fl_loop_fnc import create_dataloaders, get_net, run_fl_experiment
 from heterogeneity.utils import create_lognormal_partition_sizes
 from flwr_datasets.partitioner import DirichletPartitioner, ShardPartitioner, NaturalIdPartitioner, InnerDirichletPartitioner
@@ -211,7 +209,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
 
 if __name__ == "__main__":
 
-    MODE: str = "CUSTOM"
+    MODE: str = "FL-EXPERIMENTS"
     if MODE == "NATURAL_ID":
         print("Running NATURAL_ID")
         dataset_param_grid = natural_datasets_param_grid
@@ -220,11 +218,14 @@ if __name__ == "__main__":
         print("Running NO_NATURAL_ID")
         dataset_param_grid = no_natural_datasets_param_grid
         partitioner_param_grid = no_natural_partitioner_configs
-    elif MODE == "CUSTOM":
-        dataset_param_grid = [config_cifar10]
+    elif MODE == "FL-EXPERIMENTS":
+        run_fl = True
+        run_heterogeneity = False
+        dataset_param_grid = [config_cifar10, config_cifar100]
         # Single seed
-        dataset_param_grid[0]["seed"] = [42]
-        partitioner_param_grid = [config_class_constrained]
+        for dataset_param in dataset_param_grid:
+            dataset_param["seed"] = [42]
+        partitioner_param_grid = [config_iid_partitioner, config_dirichlet_partitioner]
     else:
         raise ValueError("incorrect mode name")
 
