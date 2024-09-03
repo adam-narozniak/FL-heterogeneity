@@ -235,7 +235,7 @@ if __name__ == "__main__":
     print(f"Final accuracy: {final_acc}, final loss: {final_loss}")
 
     pd.DataFrame([[dataset_name, final_loss, final_acc]], columns=["dataset_name", "test_loss", "test_acc"]).to_csv("./fl_centralized_test_metrics.csv")
-    
+    ray.shutdown()
     # Save test loss and accuracy
     if save_final_model:
         print("Saving model checkpoint")
