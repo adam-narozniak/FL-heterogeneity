@@ -116,7 +116,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                         for fl_config in fl_configs:
                             print(f"Running FL for {single_fds['dataset']} with {partitioner_signature.__name__}")
                             try:
-                                trainloaders, testloaders, centralized_dataloader = create_dataloaders(fds, seed=42)
+                                trainloaders, testloaders, centralized_dataloader = create_dataloaders(fds, features_name=features_name, label_name=label_name, seed=42)
                                 dataset_name = fds.load_split("train").info.dataset_name
                                 num_classes = len(fds.load_split("train").unique(label_name))
                                 net = get_net(dataset_name, num_classes)

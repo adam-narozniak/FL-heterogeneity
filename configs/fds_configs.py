@@ -1,7 +1,7 @@
 config_mnist = {
     "dataset": ["mnist"],
     "label_name": ["label"],
-    "features_name": ["img"],
+    "features_name": ["image"],
     "partition_by": ["label"],
     "split": ["train"],
     "shuffle": [True],
@@ -11,7 +11,7 @@ config_mnist = {
 config_cifar10 = {
     "dataset": ["cifar10"],
     "label_name": ["label"],
-    "features_name": ["image"],
+    "features_name": ["img"],
     "partition_by": ["label"],
     "split": ["train"],
     "shuffle": [True],
@@ -21,7 +21,7 @@ config_cifar10 = {
 config_cifar100 = {
     "dataset": ["cifar100"],
     "label_name": ["fine_label"],
-    "features_name": ["image"],
+    "features_name": ["img"],
     "partition_by": ["fine_label"],
     "split": ["train"],
     "shuffle": [True],
