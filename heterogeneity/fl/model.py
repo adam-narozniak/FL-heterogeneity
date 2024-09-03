@@ -2,7 +2,6 @@ import argparse
 import warnings
 from collections import OrderedDict
 
-from flwr.client import NumPyClient, ClientApp
 from flwr_datasets import FederatedDataset
 import torch
 import torch.nn as nn

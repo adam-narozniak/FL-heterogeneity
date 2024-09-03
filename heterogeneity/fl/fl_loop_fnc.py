@@ -4,10 +4,10 @@ from datasets import Dataset
 from flwr_datasets import FederatedDataset
 import numpy as np
 from torch.utils.data import DataLoader
-from fl.early_stopping import EarlyStopping
-from fl.model import CNNNet, CNNNetGray
-from fl.utils import set_weights, test, train, weighted_average
-from fl.weights_aggregation import fedavg
+from heterogeneity.fl.early_stopping import EarlyStopping
+from heterogeneity.fl.model import CNNNet, CNNNetGray
+from heterogeneity.fl.utils import set_weights, test, train, weighted_average
+from heterogeneity.fl.weights_aggregation import fedavg
 from heterogeneity.fl.data import predefined_transforms
 import ray
 import time
