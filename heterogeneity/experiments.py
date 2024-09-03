@@ -5,13 +5,14 @@ import numpy as np
 import pandas as pd
 from flwr_datasets import FederatedDataset
 
-from configs.fds_configs import *
-from configs.metrics_configs import *
-from configs.partitioner_configs import *
+from configs.fds_configs import no_natural_datasets_param_grid, natural_datasets_param_grid, config_femnist, config_mnist
+from configs.metrics_configs import metrics_configs
+from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_class_constrained, config_iid_partitioner, ClassConstrainedPartitioner
 from heterogeneity.utils import create_lognormal_partition_sizes
+from flwr_datasets.partitioner import DirichletPartitioner, ShardPartitioner, NaturalIdPartitioner, InnerDirichletPartitioner
 
 
-def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
+def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, metrics_configs, run_fl):
     # iterate over all configs/some other specification
     # save the results of each of the runs
 
@@ -73,8 +74,8 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
                     if "label_name" in fds_kwargs:
                         label_name = fds_kwargs.pop("label_name")
                     fds = FederatedDataset(**fds_kwargs)
+                    
                     # Different metrics calculation
-
                     for metric_config in metrics_configs:
                         metrics_fnc = metric_config["object"]
                         print("metric function:")
@@ -109,6 +110,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
                         #     str(tuple(single_partitioner_config.items()))] = metric_avg
                         metrics_avg_results[metrics_fnc.__name__].loc[len(metrics_avg_results[metrics_fnc.__name__])] =  [*single_partitioner_config.values(), single_fds.get("seed", "default"), metrics_fnc.__name__, metric_avg]
 
+                # Old way of saving the results (not easy for aggregation)
                 # save_results_dir_path = (f"../results/{single_fds['dataset']}/"
                 #                          f"{partitioner_signature.__name__}/shuffle_seed_{single_fds.get('seed', 'no_seed')}.json")
                 # save_results_dir_path = Path(save_results_dir_path)
@@ -117,8 +119,10 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
                 # with open(save_results_dir_path, "w") as file:
                 #     json.dump(metrics_avg_results, file, indent=4)
                 # print(f"Metrics saved in {save_results_dir_path}")
+                
+                # Save the heterogeneity metrics results (from a single partitioner [different configurations])
                 for name, value in metrics_avg_results.items():
-                    save_results_dir_path = (f"../results/{single_fds['dataset']}/"
+                    save_results_dir_path = (f"../results-new/{single_fds['dataset']}/"
                                                                       f"{partitioner_signature.__name__}/{name}.csv")
                     save_results_dir_path = Path(save_results_dir_path)
                     include_header = True
@@ -126,6 +130,12 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid):
                         include_header = False
                     save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
                     value.to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
+
+                if run_fl:
+                    pass
+                    # print(f"Running FL for {single_fds['dataset']} with {partitioner_signature.__name__}")
+
+
 
 
 if __name__ == "__main__":
@@ -141,12 +151,14 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         dataset_param_grid = [config_femnist]
-        partitioner_param_grid = [ config_class_constrained]
+        partitioner_param_grid = [config_class_constrained]
     else:
         raise ValueError("incorrect mode name")
 
     run_experiments_from_configs(
         datasets_param_grid=dataset_param_grid,
-        partitioner_param_grid=partitioner_param_grid
+        partitioner_param_grid=partitioner_param_grid,
+        metrics_configs=metrics_configs,
+        run_fl=True
     )
 
