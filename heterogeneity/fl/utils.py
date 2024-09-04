@@ -25,7 +25,7 @@ def set_weights(net, parameters):
 
 
 @ray.remote(num_cpus=1) # I used to have memory=100 * 10 ** 6 but it seems to be incorrectly estimated by me. I don't know why, I tried to run this script but it seems to be incorrect
-def train(net, trainloader, epochs, features_name="img", labels_name="label"):
+def train(net, trainloader, epochs, features_name="img", label_name="label"):
     """Train the model on the training set."""
     net.to(DEVICE)
     criterion = torch.nn.CrossEntropyLoss()
@@ -37,7 +37,7 @@ def train(net, trainloader, epochs, features_name="img", labels_name="label"):
         epoch_correct, epoch_loss = 0,  0.0
         for batch in trainloader:
             images = batch[features_name].to(DEVICE)
-            labels = batch[labels_name].to(DEVICE)
+            labels = batch[label_name].to(DEVICE)
             optimizer.zero_grad()
             outputs = net(images)
             loss = criterion(outputs, labels)
@@ -54,7 +54,7 @@ def train(net, trainloader, epochs, features_name="img", labels_name="label"):
     return get_weights(net), len(trainloader.dataset), {"train_loss": train_loss, "train_acc": train_acc}
 
 @ray.remote(num_cpus=1)
-def test(net, testloader, features_name="img", labels_name="label"):
+def test(net, testloader, features_name="img", label_name="label"):
     """Test the model on the test set."""
     net.to(DEVICE)
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
@@ -64,7 +64,7 @@ def test(net, testloader, features_name="img", labels_name="label"):
     with torch.no_grad():
         for batch in testloader:
             images = batch[features_name].to(DEVICE)
-            labels = batch[labels_name].to(DEVICE)
+            labels = batch[label_name].to(DEVICE)
             outputs = net(images)
             total_loss += criterion(outputs, labels).item()
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
