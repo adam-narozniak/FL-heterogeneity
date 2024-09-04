@@ -74,7 +74,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                     metrics_to_save = [metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res]
                     metrics_names = ["metrics_train_list", "metrics_eval_list", "metrics_aggregated_train_list", "metrics_aggregated_eval_list", "test_res"]
                     for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-                        save_results_dir_path = (f"results-2024-09-03-local-epochs-5-rounds-500-test-pathological/{fds_kwargs['dataset']}/"
+                        save_results_dir_path = (f"results-test-refactoring/{fds_kwargs['dataset']}/"
                                                                 f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{metrics_name}.csv")
                         
                         save_results_dir_path = Path(save_results_dir_path)
@@ -88,60 +88,6 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                         else:
                             pd.DataFrame([[*single_partitioner_config.values(), fds_kwargs.get("seed", "default"), metric_to_save]], columns=[*list(single_partitioner_config.keys()), "fds_seed", metrics_name]).to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
                         print(f"FL {metrics_name} saved")
-
-                        
-                    # pd.DataFrame([[*single_partitioner_config.values(), fds_kwargs.get("seed", "default"), metrics_eval_list]], columns=[*list(single_partitioner_config.keys()), "fds_seed", "metrics_train_list"]).to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
-                    # print("FL Training history saved")
-
-
-                    # pd.DataFrame([[dataset_name, metrics_eval_list]], columns=["dataset_name", "metrics_eval_list"]).to_csv("./fl_eval_metrics.csv")
-                    # print("FL Evaluation history saved")
-
-                    # print("FL Training history aggregated:")
-                    # print(metrics_aggregated_train_list)
-                    # pd.DataFrame([[dataset_name, metrics_aggregated_train_list]], columns=["dataset_name", "metrics_aggregated_train_list"]).to_csv("./fl_train_aggregated_metrics.csv")
-
-                    # print("FL Evaluation history aggregated:")
-                    # print(metrics_aggregated_eval_list)
-                    # pd.DataFrame([[dataset_name, metrics_aggregated_eval_list]], columns=["dataset_name", "metrics_aggregated_eval_list"]).to_csv("./fl_eval_aggregated_metrics.csv")
-
-                    # pd.DataFrame([[*single_partitioner_config.values(), single_fds.get("seed", "default"), metrics_fnc.__name__, metric_avg]], columns=[*list(single_partitioner_config.keys()), "fds_seed", "metric_name", "metric_value"]).to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
-
-
-        
-
-            # if metrics_fnc.__name__ not in metrics_avg_results:
-            #     metrics_avg_results[metrics_fnc.__name__] = pd.DataFrame([], columns=[*list(single_partitioner_config.keys()), "fds_seed", "metric_name", "metric_value"])
-            #     # metrics_avg_results[metrics_fnc.__name__]["fds_seed"] = single_fds.get("seed", "default")
-                # metrics_avg_results[metrics_fnc.__name__]["metric_name"] = metrics_fnc.__name__
-                # metrics_avg_results[metrics_fnc.__name__][
-                #     "metric_value"] = metric_avg
-
-            # metrics_avg_results[metrics_fnc.__name__][
-            #     str(tuple(single_partitioner_config.items()))] = metric_avg
-            # metrics_avg_results[metrics_fnc.__name__].loc[len(metrics_avg_results[metrics_fnc.__name__])] =  [*single_partitioner_config.values(), single_fds.get("seed", "default"), metrics_fnc.__name__, metric_avg]
-
-    # Old way of saving the results (not easy for aggregation)
-    # save_results_dir_path = (f"../results/{single_fds['dataset']}/"
-    #                          f"{partitioner_signature.__name__}/shuffle_seed_{single_fds.get('seed', 'no_seed')}.json")
-    # save_results_dir_path = Path(save_results_dir_path)
-    # save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
-    # # pd.DataFrame(metrics_avg_results).to_csv(save_results_dir_path)
-    # with open(save_results_dir_path, "w") as file:
-    #     json.dump(metrics_avg_results, file, indent=4)
-    # print(f"Metrics saved in {save_results_dir_path}")
-    
-    # Save the heterogeneity metrics results (from a single partitioner [different configurations])
-    # for name, value in metrics_avg_results.items():
-    #     save_results_dir_path = (f"../results-new/{single_fds['dataset']}/"
-    #                                                       f"{partitioner_signature.__name__}/{name}.csv")
-    #     save_results_dir_path = Path(save_results_dir_path)
-    #     include_header = True
-    #     if save_results_dir_path.exists():
-    #         include_header = False
-    #     save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
-    #     value.to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
-
                 
 
 if __name__ == "__main__":
