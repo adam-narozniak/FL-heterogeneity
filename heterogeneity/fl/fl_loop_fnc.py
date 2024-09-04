@@ -20,8 +20,8 @@ def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str
     ]
     
     # For performance reasons flatten indices
-    for partition in partitions:
-        partition.flatten_indices()
+    for partition_id, partition in enumerate(partitions):
+        partitions[partition_id] = partition.flatten_indices()
     image_mode = "grayscale" if fds.load_split("train").info.dataset_name == "mnist" else "rgb"
 
         
@@ -65,7 +65,7 @@ def get_net(dataset_name:str, num_classes):
         net = CNNNet(num_classes=num_classes)
     return net
 
-def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dl, net, seed: int=42):
+def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dl, net, num_local_epochs: int, features_name: str, label_name: str, apply_early_stopping: bool = True, seed: int=42):
     # This is the intial model (it will be update after each communication round)
     total_num_clients = len(trainloaders)
     
@@ -73,8 +73,6 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
     print(context.dashboard_url)
     num_cpus = ray.available_resources().get("CPU")
     in_flight_tasks = num_cpus
-    # local num epochs
-    num_epochs = 1
 
     time_start = time.time()
 
@@ -85,8 +83,8 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
     metrics_aggregated_eval_list = []
 
     np_rng = np.random.default_rng(seed=seed)
-
-    early_stopping = EarlyStopping()
+    if apply_early_stopping:
+        early_stopping = EarlyStopping()
     for comunication_round in range(1, comunication_rounds + 1):
 
         # Federated training
@@ -102,7 +100,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for train_client in selected_train_clients:
             print(f"Training client {train_client}")
             train_ref = train.remote(
-                net=net, trainloader=trainloaders[train_client], epochs=num_epochs
+                net=net, trainloader=trainloaders[train_client], epochs=num_local_epochs, features_name=features_name, label_name=label_name
             )
             train_refs.append(train_ref)
             # This ways makes the Object Store Memory very low < 2 MB while having 1000 started at the same time makes it about 240 MB
@@ -150,7 +148,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for eval_client in selected_eval_clients:
             print(f"Eval client {eval_client}")
             eval_ref = test.remote(
-                net=net, testloader=testloaders[eval_client]
+                net=net, testloader=testloaders[eval_client], features_name=features_name, label_name=label_name
             )
             eval_refs.append(eval_ref)
             if len(eval_refs) == in_flight_tasks:
@@ -185,12 +183,13 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         print(f"Communication round {comunication_round} finshed.")
 
         # Check if early stopping should be triggered
-        early_stopping(eval_metrics_aggregated["eval_loss"], net, comunication_round)
-        if early_stopping.early_stop:
-            print(
-                f"Early stopping triggered. Stopping training after {comunication_round}."
-            )
-            break
+        if apply_early_stopping:
+            early_stopping(eval_metrics_aggregated["eval_loss"], net, comunication_round)
+            if early_stopping.early_stop:
+                print(
+                    f"Early stopping triggered. Stopping training after {comunication_round}."
+                )
+                break
 
     time_end = time.time()
     print(f"FL training finished in {time_end - time_start} seconds")
@@ -201,13 +200,19 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
     print("FL Evaluation history aggregated:")
     print(metrics_aggregated_eval_list)
 
-    print(
-        "Backing up the model weigths to the best communication round"
-        "(no effect if early stopping was not triggered)"
-    )
-    early_stopping.load_best_model(net)
+    if apply_early_stopping:
+        print(
+            "Backing up the model weigths to the best communication round"
+            " (no effect if early stopping was not triggered)"
+        )
+        early_stopping.load_best_model(net)
 
-    test_res = ray.get(test.remote(net, centralized_dl))[1]
+    test_res = ray.get(test.remote(net, centralized_dl, features_name, labels_name))[1]
+    if apply_early_stopping:
+        test_res["best_communication_round"] = early_stopping.best_round
+    else:
+        test_res["best_communication_round"] = comunication_rounds
+
     final_loss, final_acc = test_res["eval_loss"], test_res["eval_acc"]
     print(f"Final accuracy: {final_acc}, final loss: {final_loss}")
 
