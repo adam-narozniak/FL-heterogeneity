@@ -10,7 +10,7 @@ from configs.fds_configs import no_natural_datasets_param_grid, natural_datasets
 from configs.metrics_configs import metrics_configs
 from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_pathological, config_iid_partitioner, config_dirichlet_partitioner
 from heterogeneity.fl.fl_loop_fnc import create_dataloaders, get_net, run_fl_experiment
-from heterogeneity.utils import create_lognormal_partition_sizes
+from heterogeneity.partitioners_utils import create_lognormal_partition_sizes
 from flwr_datasets.partitioner import DirichletPartitioner, ShardPartitioner, NaturalIdPartitioner, InnerDirichletPartitioner, PathologicalPartitioner
 
 def yeild_configs(datasets_param_grid, partitioner_param_grid):
@@ -199,7 +199,6 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
     #     save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
     #     value.to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
 
-                
                 
 
 if __name__ == "__main__":
