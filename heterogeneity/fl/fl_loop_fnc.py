@@ -13,7 +13,7 @@ import ray
 import time
 from heterogeneity.fl.data import create_apply_transforms
 
-def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str, seed: int) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]: 
+def create_dataloaders(fds: FederatedDataset, features_name:str, labels_name: str, seed: int) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]: 
     num_partitions = fds.partitioners["train"].num_partitions
     partitions = [
         fds.load_partition(partition_id) for partition_id in range(num_partitions)
@@ -26,7 +26,7 @@ def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str
 
         
     apply_transforms = create_apply_transforms(
-        predefined_transforms[image_mode], features_name=features_name, label_name=label_name
+        predefined_transforms[image_mode], features_name=features_name, labels_name=labels_name
     )
     
     centralized_ds = fds.load_split("test")
@@ -65,7 +65,7 @@ def get_net(dataset_name:str, num_classes):
         net = CNNNet(num_classes=num_classes)
     return net
 
-def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dl, net, num_local_epochs: int, features_name: str, label_name: str, apply_early_stopping: bool = True, seed: int=42):
+def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dl, net, num_local_epochs: int, features_name: str, labels_name: str, apply_early_stopping: bool = True, seed: int=42):
     # This is the intial model (it will be update after each communication round)
     total_num_clients = len(trainloaders)
     
@@ -100,7 +100,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for train_client in selected_train_clients:
             print(f"Training client {train_client}")
             train_ref = train.remote(
-                net=net, trainloader=trainloaders[train_client], epochs=num_local_epochs, features_name=features_name, label_name=label_name
+                net=net, trainloader=trainloaders[train_client], epochs=num_local_epochs, features_name=features_name, labels_name=labels_name
             )
             train_refs.append(train_ref)
             # This ways makes the Object Store Memory very low < 2 MB while having 1000 started at the same time makes it about 240 MB
@@ -148,7 +148,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for eval_client in selected_eval_clients:
             print(f"Eval client {eval_client}")
             eval_ref = test.remote(
-                net=net, testloader=testloaders[eval_client], features_name=features_name, label_name=label_name
+                net=net, testloader=testloaders[eval_client], features_name=features_name, labels_name=labels_name
             )
             eval_refs.append(eval_ref)
             if len(eval_refs) == in_flight_tasks:
@@ -207,7 +207,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         )
         early_stopping.load_best_model(net)
 
-    test_res = ray.get(test.remote(net=net, testloader=centralized_dl, features_name=features_name, labels_name=label_name))[1]
+    test_res = ray.get(test.remote(net=net, testloader=centralized_dl, features_name=features_name, labels_name=labels_name))[1]
     if apply_early_stopping:
         test_res["best_communication_round"] = early_stopping.best_round
     else:

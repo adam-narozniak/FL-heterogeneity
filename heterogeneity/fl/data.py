@@ -2,7 +2,7 @@ from torchvision.transforms import Compose, Normalize, ToTensor
 
 
 
-def create_apply_transforms(pytorch_transforms = None, features_name="image", label_name="label"):
+def create_apply_transforms(pytorch_transforms = None, features_name="image", labels_name="label"):
     """Create a function to apply transforms to the partition from FederatedDataset."""
     if pytorch_transforms is None:
         pytorch_transforms = ToTensor()

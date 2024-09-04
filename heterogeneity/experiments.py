@@ -71,9 +71,9 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                     fds_kwargs = {**single_fds, "partitioners": {split: partitioner}}
                     if "partition_by" in fds_kwargs:
                         fds_kwargs.pop("partition_by")
-                    label_name = None
-                    if "label_name" in fds_kwargs:
-                        label_name = fds_kwargs.pop("label_name")
+                    labels_name = None
+                    if "labels_name" in fds_kwargs:
+                        labels_name = fds_kwargs.pop("labels_name")
                         features_name = fds_kwargs.pop("features_name")
                     fds = FederatedDataset(**fds_kwargs)
                     
@@ -83,8 +83,8 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                             metrics_fnc = metric_config["object"]
                             print("metric function:")
                             print(metrics_fnc)
-                            if label_name is not None:
-                                metric_config["kwargs"]["label_name"] = label_name
+                            if labels_name is not None:
+                                metric_config["kwargs"]["labels_name"] = labels_name
                             metrics_kwargs = {"partitioner": partitioner,
                                             **metric_config["kwargs"]}
                             print("metrics kwargs")
@@ -116,9 +116,9 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                         for fl_config in fl_configs:
                             print(f"Running FL for {single_fds['dataset']} with {partitioner_signature.__name__}")
                             try:
-                                trainloaders, testloaders, centralized_dataloader = create_dataloaders(fds, features_name=features_name, label_name=label_name, seed=42)
+                                trainloaders, testloaders, centralized_dataloader = create_dataloaders(fds, features_name=features_name, labels_name=labels_name, seed=42)
                                 dataset_name = fds.load_split("train").info.dataset_name
-                                num_classes = len(fds.load_split("train").unique(label_name))
+                                num_classes = len(fds.load_split("train").unique(labels_name))
                                 net = get_net(dataset_name, num_classes)
                                 n_comunication_rounds = fl_config["n_comunication_rounds"]
                                 num_partitions = fds.partitioners["train"].num_partitions
@@ -127,7 +127,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                                 early_stopping = fl_config["early_stopping"]
                                 num_local_epochs = fl_config["num_local_epochs"]
                                 fl_seed = fl_config["seed"]
-                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = run_fl_experiment(n_comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dataloader, net, num_local_epochs, features_name, label_name, early_stopping, seed=fl_seed)
+                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = run_fl_experiment(n_comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dataloader, net, num_local_epochs, features_name, labels_name, early_stopping, seed=fl_seed)
                             except ValueError as e:
                                 print(f"Failed to load partitions: {e}")
                                 metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = np.nan, np.nan, np.nan, np.nan, {"eval_loss": np.nan, "eval_acc": np.nan, "best_communication_round": np.nan}
@@ -135,7 +135,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                                 metrics_to_save = [metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res]
                                 metrics_names = ["metrics_train_list", "metrics_eval_list", "metrics_aggregated_train_list", "metrics_aggregated_eval_list", "test_res"]
                                 for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-                                    save_results_dir_path = (f"results-2024-09-03-local-epochs-5/{single_fds['dataset']}/"
+                                    save_results_dir_path = (f"results-2024-09-03-local-epochs-5-rounds-500/{single_fds['dataset']}/"
                                                                             f"{partitioner_signature.__name__}/{metrics_name}.csv")
                                     
                                     save_results_dir_path = Path(save_results_dir_path)
