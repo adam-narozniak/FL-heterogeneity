@@ -122,18 +122,20 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                                 net = get_net(dataset_name, num_classes)
                                 n_comunication_rounds = fl_config["n_comunication_rounds"]
                                 num_partitions = fds.partitioners["train"].num_partitions
-                                n_clients_per_round_train = num_partitions if num_partitions <= 10 else int(fl_config["n_clients_per_round_train"] * len(testloaders))
+                                n_clients_per_round_train = num_partitions if num_partitions <= 10 else int(fl_config["n_clients_per_round_train"] * len(trainloaders))
                                 n_clients_per_round_eval =  num_partitions if num_partitions <= 10 else int(fl_config["n_clients_per_round_eval"] * len(testloaders))
+                                early_stopping = fl_config["early_stopping"]
+                                num_local_epochs = fl_config["num_local_epochs"]
                                 fl_seed = fl_config["seed"]
-                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = run_fl_experiment(n_comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dataloader, net, seed=fl_seed)
+                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = run_fl_experiment(n_comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dataloader, net, num_local_epochs, features_name, label_name, early_stopping, seed=fl_seed)
                             except ValueError as e:
                                 print(f"Failed to load partitions: {e}")
-                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = np.nan, np.nan, np.nan, np.nan, {"eval_loss": np.nan, "eval_acc": np.nan} #"best_communication_round": np.nan
+                                metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res = np.nan, np.nan, np.nan, np.nan, {"eval_loss": np.nan, "eval_acc": np.nan, "best_communication_round": np.nan}
                             finally:
                                 metrics_to_save = [metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res]
                                 metrics_names = ["metrics_train_list", "metrics_eval_list", "metrics_aggregated_train_list", "metrics_aggregated_eval_list", "test_res"]
                                 for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-                                    save_results_dir_path = (f"results-2024-03-09/{single_fds['dataset']}/"
+                                    save_results_dir_path = (f"results-2024-09-03-local-epochs-5/{single_fds['dataset']}/"
                                                                             f"{partitioner_signature.__name__}/{metrics_name}.csv")
                                     
                                     save_results_dir_path = Path(save_results_dir_path)
