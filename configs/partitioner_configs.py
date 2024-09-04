@@ -1,7 +1,6 @@
 from flwr_datasets.partitioner import IidPartitioner, DirichletPartitioner, \
-    ShardPartitioner, InnerDirichletPartitioner, NaturalIdPartitioner
-
-from configs.class_constrained import ClassConstrainedPartitioner
+    ShardPartitioner, InnerDirichletPartitioner, NaturalIdPartitioner, \
+    PathologicalPartitioner
 
 config_iid_partitioner = {
     "object": IidPartitioner,
@@ -44,23 +43,33 @@ config_inner_dirichlet_partitioner = {
     }
 }
 
-config_class_constrained = {
-    "object": ClassConstrainedPartitioner,
+config_pathological = {
+    "object": PathologicalPartitioner,
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "partition_by": ["label"],
         "num_classes_per_partition": [2, 3, 4, 5],#[int(0.2 * 62), int(0.3 * 62), int(0.4 * 62), int(0.5 * 62)],
-        "first_class_deterministic_assignment": [True]
+        "class_assignment_mode": ["first-deterministic"]
     }
 }
 
-config_class_constrained_full_random = {
-    "object": ClassConstrainedPartitioner,
+config_pathological_deterministic = {
+    "object": PathologicalPartitioner,
+    "param_grid": {
+        "num_partitions": [3, 10, 30, 100, 300, 1000],
+        "partition_by": ["label"],
+        "num_classes_per_partition": [2, 3, 4, 5], # todo: change it so that the number of classes is a fraction of the total number of classes
+        "class_assignment_mode": ["deterministic"]
+    }
+}
+
+config_pathological_random = {
+    "object": PathologicalPartitioner,
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "partition_by": ["label"],
         "num_classes_per_partition": [2, 3, 4, 5],
-        "first_class_deterministic_assignment": [True]
+        "class_assignment_mode": ["random"]
     }
 }
 

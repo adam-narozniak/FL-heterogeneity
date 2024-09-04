@@ -8,10 +8,10 @@ from flwr_datasets import FederatedDataset
 from configs.fl_configs import fl_configs
 from configs.fds_configs import no_natural_datasets_param_grid, natural_datasets_param_grid, config_femnist, config_mnist, config_cifar10, config_cifar100
 from configs.metrics_configs import metrics_configs
-from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_class_constrained, config_iid_partitioner, ClassConstrainedPartitioner, config_dirichlet_partitioner
+from configs.partitioner_configs import natural_partitioner_configs, no_natural_partitioner_configs, config_pathological, config_iid_partitioner, config_dirichlet_partitioner
 from heterogeneity.fl.fl_loop_fnc import create_dataloaders, get_net, run_fl_experiment
 from heterogeneity.utils import create_lognormal_partition_sizes
-from flwr_datasets.partitioner import DirichletPartitioner, ShardPartitioner, NaturalIdPartitioner, InnerDirichletPartitioner
+from flwr_datasets.partitioner import DirichletPartitioner, ShardPartitioner, NaturalIdPartitioner, InnerDirichletPartitioner, PathologicalPartitioner
 
 def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, metrics_configs, run_heterogeneity, run_fl, fl_configs):
     # iterate over all configs/some other specification
@@ -46,7 +46,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
 
                 for single_partitioner_config in single_partitioner_config_list:
                     additional_to_save = None
-                    if partitioner_signature in [DirichletPartitioner, ShardPartitioner, ClassConstrainedPartitioner]:
+                    if partitioner_signature in [DirichletPartitioner, ShardPartitioner, PathologicalPartitioner]:
                         single_partitioner_config["seed"] = single_fds["seed"]
                         if "partition_by" in single_fds:
                             single_partitioner_config["partition_by"] = single_fds["partition_by"]
