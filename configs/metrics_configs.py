@@ -1,15 +1,17 @@
-from heterogeneity.metrics import compute_earths_mover_distance
-from heterogeneity.metrics.hellinger_distance import compute_hellinger_distance
-from heterogeneity.metrics import compute_kl_divergence
+from heterogeneity.metrics import (
+    compute_earths_mover_distance,
+    compute_hellinger_distance,
+    compute_kl_divergence,
+)
 
 metrics_earths_mover = {
-    "object": compute_earths_mover_distance, "kwargs": {"label_name": "label"}
+    "object": compute_earths_mover_distance,
+    "kwargs": {"label_name": "label"},
 }
-
 metrics_hellinger = {
-    "object": compute_hellinger_distance, "kwargs": {"label_name": "label"}
+    "object": compute_hellinger_distance,
+    "kwargs": {"label_name": "label"},
 }
-metrics_kl = {
-    "object": compute_kl_divergence, "kwargs": {"label_name": "label"}
-}
-metrics_configs = [metrics_hellinger]  # metrics_earths_mover, metrics_kl]
+metrics_kl = {"object": compute_kl_divergence, "kwargs": {"label_name": "label"}}
+
+all_metrics = [metrics_hellinger, metrics_earths_mover, metrics_kl]
