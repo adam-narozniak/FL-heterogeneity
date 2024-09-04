@@ -51,7 +51,7 @@ def yeild_configs(datasets_param_grid, partitioner_param_grid):
                     fds_kwargs = {**single_fds, "partitioners": {split: partitioner}}
                     if "partition_by" in fds_kwargs:
                         fds_kwargs.pop("partition_by")
-                    labels_name = fds_kwargs.pop("labels_name")
+                    label_name = fds_kwargs.pop("label_name")
                     features_name = fds_kwargs.pop("features_name")
 
-                    yield fds_kwargs, partitioner_kwargs, features_name, labels_name
+                    yield fds_kwargs, partitioner_kwargs, features_name, label_name
