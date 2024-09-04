@@ -207,7 +207,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         )
         early_stopping.load_best_model(net)
 
-    test_res = ray.get(test.remote(net, centralized_dl, features_name, labels_name))[1]
+    test_res = ray.get(test.remote(net=net, testloader=centralized_dl, features_name=features_name, labels_name=label_name))[1]
     if apply_early_stopping:
         test_res["best_communication_round"] = early_stopping.best_round
     else:
