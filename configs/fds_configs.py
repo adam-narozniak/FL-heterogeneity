@@ -25,8 +25,10 @@ config_cifar100 = {
     "partition_by": ["fine_label"],
     "split": ["train"],
     "shuffle": [True],
-    "seed": list(range(42, 44))
+    "seed": list(range(42, 47))
 }
+
+# NaturalID datasets
 
 config_femnist = {
     "dataset": ["flwrlabs/femnist"],
