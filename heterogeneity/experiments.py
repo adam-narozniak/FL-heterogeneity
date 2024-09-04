@@ -34,9 +34,6 @@ def yeild_configs(datasets_param_grid, partitioner_param_grid):
                                                   for values in
                                                   partitioner_config_product]
 
-                metrics_avg_results = {}
-                metrics_list_results = {}
-
                 for partitioner_kwargs in partitioner_kwargs_list:
                     additional_to_save = None
                     if partitioner_signature in [DirichletPartitioner, ShardPartitioner, PathologicalPartitioner]:
