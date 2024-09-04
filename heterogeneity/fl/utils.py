@@ -29,7 +29,7 @@ def train(net, trainloader, epochs, features_name="img", labels_name="label"):
     """Train the model on the training set."""
     net.to(DEVICE)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(net.parameters())# .SGD(net.parameters(), lr=0.01, momentum=0.9)#
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.00001)#torch.optim.Adam(net.parameters())
     net.train() 
     train_loss, train_acc = 0.0, 0.0
     num_examples = len(trainloader.dataset)
