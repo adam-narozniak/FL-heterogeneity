@@ -44,7 +44,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                 # Save exmperiments results as quick as they are available
                 # (then append as the new experiments come)
                 save_results_dir_path = (f"results-2024-03-09/{fds_kwargs['dataset']}/"
-                                                                f"{fds['partitioners']['train'].__name__}/{metrics_fnc.__name__}.csv")
+                                                                f"{fds['partitioners']['train'].__class__.__name__}/{metrics_fnc.__name__}.csv")
                 save_results_dir_path = Path(save_results_dir_path)
                 include_header = True
                 if save_results_dir_path.exists():
@@ -53,7 +53,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                 pd.DataFrame([[*single_partitioner_config.values(), fds_kwargs.get("seed", "default"), metrics_fnc.__name__, metric_avg]], columns=[*list(single_partitioner_config.keys()), "fds_seed", "metric_name", "metric_value"]).to_csv(save_results_dir_path, index=False, mode="a", header=include_header)
         if run_fl:
             for fl_config in fl_configs:
-                print(f"Running FL for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__name__}")
+                print(f"Running FL for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}")
                 try:
                     trainloaders, testloaders, centralized_dataloader = create_dataloaders(fds, features_name=features_name, labels_name=labels_name, seed=42)
                     dataset_name = fds.load_split("train").info.dataset_name
@@ -75,7 +75,7 @@ def run_experiments_from_configs(datasets_param_grid, partitioner_param_grid, me
                     metrics_names = ["metrics_train_list", "metrics_eval_list", "metrics_aggregated_train_list", "metrics_aggregated_eval_list", "test_res"]
                     for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
                         save_results_dir_path = (f"results-2024-09-03-local-epochs-5-rounds-500-test-pathological/{fds_kwargs['dataset']}/"
-                                                                f"{fds_kwargs['partitioners']['train'].__name__}/{metrics_name}.csv")
+                                                                f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{metrics_name}.csv")
                         
                         save_results_dir_path = Path(save_results_dir_path)
                         include_header = True
