@@ -4,7 +4,9 @@ import numpy as np
 import ray
 
 from heterogeneity.fl.early_stopping import EarlyStopping
-from heterogeneity.fl.utils import set_weights, test, train, weighted_average
+from heterogeneity.fl.metrics_aggregation import weighted_average
+from heterogeneity.fl.ml import test, train
+from heterogeneity.fl.ml_utils import set_weights
 from heterogeneity.fl.weights_aggregation import fedavg
 
 
