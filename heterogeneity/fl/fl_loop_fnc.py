@@ -199,6 +199,7 @@ def run_fl_experiment(
 
     ray.shutdown()
     return (
+        net,
         metrics_train_list,
         metrics_eval_list,
         metrics_aggregated_train_list,

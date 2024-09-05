@@ -29,7 +29,7 @@ from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
 from heterogeneity.fl.model import get_net
 
 
-def run_experiments_from_configs(
+def run_fl(
     fds: FederatedDataset,
     fds_kwargs: Dict,
     partitioner_kwargs: Dict,
@@ -67,6 +67,7 @@ def run_experiments_from_configs(
         num_local_epochs = fl_config["num_local_epochs"]
         fl_seed = fl_config["seed"]
         (
+            _,
             metrics_train_list,
             metrics_eval_list,
             metrics_aggregated_train_list,
@@ -168,6 +169,9 @@ def run_experiments_from_configs(
 
 
 if __name__ == "__main__":
+
+    save_dir_name = "results-iid-adam"
+
     MODE: str = "CUSTOM"
     if MODE == "NATURAL_ID":
         print("Running NATURAL_ID")
@@ -204,6 +208,6 @@ if __name__ == "__main__":
             )
             print("FL config:")
             pprint(fl_config)
-            run_experiments_from_configs(
+            run_fl(
                 fds, fds_kwargs, partitioner_kwargs, fl_config, label_name
             )
