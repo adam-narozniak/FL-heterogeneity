@@ -1,7 +1,8 @@
+from typing import Dict, Optional
+
 import torch
-from torch.utils.data import DataLoader
-from torch import nn, optim
-from typing import Optional, Dict
+from torch import nn
+
 
 class EarlyStopping:
     def __init__(
@@ -9,7 +10,7 @@ class EarlyStopping:
         patience: int = 10,
         min_delta: float = 0.0,
         verbose: bool = False,
-        mode: str = 'min',
+        mode: str = "min",
     ) -> None:
         """
         Early stopping to stop training when a monitored metric stops improving.
@@ -28,8 +29,12 @@ class EarlyStopping:
         self.best_round: Optional[int] = None
         self.early_stop: bool = False
         self.mode: str = mode
-        self.sign: int = -1 if mode == 'min' else 1  # Minimize loss or maximize accuracy.
-        self.best_model_state: Optional[Dict[str, torch.Tensor]] = None  # In-memory storage of the best model state.
+        self.sign: int = (
+            -1 if mode == "min" else 1
+        )  # Minimize loss or maximize accuracy.
+        self.best_model_state: Optional[Dict[str, torch.Tensor]] = (
+            None  # In-memory storage of the best model state.
+        )
 
     def __call__(self, score: float, model: nn.Module, best_round: int) -> None:
         """
@@ -45,7 +50,9 @@ class EarlyStopping:
             self.best_score = current_score
             self.best_round = best_round
             self._save_best_model_state(model)
-        elif current_score < self.best_score + self.min_delta:  # Adjust direction based on sign.
+        elif (
+            current_score < self.best_score + self.min_delta
+        ):  # Adjust direction based on sign.
             self.counter += 1
             if self.verbose:
                 print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
@@ -64,7 +71,9 @@ class EarlyStopping:
         Args:
             model (nn.Module): The model whose weights are saved in memory.
         """
-        self.best_model_state = {k: v.clone() for k, v in model.state_dict().items()}  # Save a deep copy of the weights
+        self.best_model_state = {
+            k: v.clone() for k, v in model.state_dict().items()
+        }  # Save a deep copy of the weights
         if self.verbose:
             print("Model improved. Best model state updated in memory.")
 
@@ -77,6 +86,6 @@ class EarlyStopping:
         """
         if self.best_model_state is not None:
             model.load_state_dict(self.best_model_state)
-            print("Best model weights loaded from memory.")
+            print("Best model weights loaded.")
         else:
             print("No best model state found to load.")
