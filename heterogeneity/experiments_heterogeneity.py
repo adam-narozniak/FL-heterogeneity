@@ -7,6 +7,9 @@ from configs.fds_configs import (
     natural_datasets_param_grid,
     no_natural_datasets_param_grid,
     config_cifar10,
+    config_cifar100,
+    config_mnist,
+    config_femnist,
 )
 from configs.metrics_configs import (
     all_metrics,
@@ -17,7 +20,11 @@ from configs.metrics_configs import (
 from configs.partitioner_configs import (
     natural_partitioner_configs,
     no_natural_partitioner_configs,
-    config_iid_partitioner
+    config_iid_partitioner,
+    config_dirichlet_partitioner,
+    config_pathological,
+    config_pathological_random,
+    config_pathological_deterministic,
 )
 from heterogeneity.config_utils import yeild_configs
 import numpy as np
@@ -53,7 +60,7 @@ def run_heterogeneity_experiment(fds: FederatedDataset, fds_kwargs: Dict, partit
     # Save exmperiments results as quick as they are available
     # (then append as the new experiments come)
     save_results_dir_path = (
-        f"results-test-heterogeneity-refactor-2024-03-09/{fds_kwargs['dataset']}/"
+        f"results-heterogeneity-2024-09-05/{fds_kwargs['dataset']}/"
         f"{fds.partitioners['train'].__class__.__name__}/{metrics_fnc.__name__}.csv"
     )
     save_results_dir_path = Path(save_results_dir_path)
@@ -92,8 +99,8 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_cifar10]
-        partitioner_param_grid = [config_iid_partitioner]
+        dataset_param_grid = [config_cifar10, config_cifar100, config_mnist, config_femnist]
+        partitioner_param_grid = [config_iid_partitioner, config_dirichlet_partitioner, config_pathological]
     else:
         raise ValueError(f"Invalid MODE: {MODE}")
 
