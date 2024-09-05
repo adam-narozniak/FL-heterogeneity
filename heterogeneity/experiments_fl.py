@@ -1,11 +1,11 @@
+import argparse
 from pathlib import Path
 from pprint import pprint
 from typing import Dict
 
 import numpy as np
-import pandas as pd
-from flwr_datasets import FederatedDataset
 import torch
+from flwr_datasets import FederatedDataset
 
 from configs.fds_configs import (
     config_cifar10,
@@ -27,6 +27,7 @@ from heterogeneity.config_utils import yeild_configs
 from heterogeneity.fl.data import create_dataloaders
 from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
 from heterogeneity.fl.model import get_net
+from heterogeneity.fl.save_utils import save_fl_results
 
 
 def run_fl(
@@ -38,9 +39,9 @@ def run_fl(
 ):
     # seed in torch for model weights init + dataloader shuffling
     seed = fl_config["seed"]
-    # same seed in numpy for clients selection for each communication round 
+    # same seed in numpy for clients selection for each communication round
     # (train and test clients are selected seperately from the same rng)
-    torch.manual_seed(seed) 
+    torch.manual_seed(seed)
     try:
         trainloaders, testloaders, centralized_dataloader = create_dataloaders(
             fds,
@@ -98,79 +99,35 @@ def run_fl(
             "eval_acc": np.nan,
             "best_communication_round": np.nan,
         }
-    finally:
-        metrics_to_save = [
-            metrics_train_list,
-            metrics_eval_list,
-            metrics_aggregated_train_list,
-            metrics_aggregated_eval_list,
-            test_res,
-        ]
-        metrics_names = [
-            "metrics_train_list",
-            "metrics_eval_list",
-            "metrics_aggregated_train_list",
-            "metrics_aggregated_eval_list",
-            "test_res",
-        ]
-        for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-            save_results_dir_path = (
-                f"results-iid-adam/{fds_kwargs['dataset']}/"
-                f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{metrics_name}.csv"
-            )
+    return (
+        metrics_train_list,
+        metrics_eval_list,
+        metrics_aggregated_train_list,
+        metrics_aggregated_eval_list,
+        test_res,
+    )
 
-            save_results_dir_path = Path(save_results_dir_path)
-            include_header = True
-            if save_results_dir_path.exists():
-                include_header = False
-            save_results_dir_path.parent.mkdir(parents=True, exist_ok=True)
 
-            if metrics_name == "test_res":
-                pd.DataFrame(
-                    [
-                        [
-                            *partitioner_kwargs.values(),
-                            fds_kwargs.get("seed", "default"),
-                            *list(metric_to_save.values()),
-                        ]
-                    ],
-                    columns=[
-                        *list(partitioner_kwargs.keys()),
-                        "fds_seed",
-                        *list(metric_to_save.keys()),
-                    ],
-                ).to_csv(
-                    save_results_dir_path,
-                    index=False,
-                    mode="a",
-                    header=include_header,
-                )
-            else:
-                pd.DataFrame(
-                    [
-                        [
-                            *partitioner_kwargs.values(),
-                            fds_kwargs.get("seed", "default"),
-                            metric_to_save,
-                        ]
-                    ],
-                    columns=[
-                        *list(partitioner_kwargs.keys()),
-                        "fds_seed",
-                        metrics_name,
-                    ],
-                ).to_csv(
-                    save_results_dir_path,
-                    index=False,
-                    mode="a",
-                    header=include_header,
-                )
-            print(f"FL {metrics_name} saved")
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-n",
+        "--experiment-name",
+        type=str,
+        default="testing",
+        help="Name of the experiment",
+    )
+
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == "__main__":
+    args = parse_arguments()
+    experiment_name: str = args.experiment_name
 
-    save_dir_name = "results-iid-adam"
+    results_directory_name = Path(f"results/{experiment_name}")
+    results_directory_name.mkdir(parents=True, exist_ok=True)
 
     MODE: str = "CUSTOM"
     if MODE == "NATURAL_ID":
@@ -183,7 +140,7 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_mnist, config_cifar10, config_cifar100]
+        dataset_param_grid = [config_mnist]
         partitioner_param_grid = [
             config_iid_partitioner,
             # config_dirichlet_partitioner,
@@ -194,6 +151,12 @@ if __name__ == "__main__":
     # Single seed
     for dataset_param in dataset_param_grid:
         dataset_param["seed"] = [42]
+
+    # Save all the configs before starting the experiments
+    for fds_id, dataset_param_grid_single in enumerate(dataset_param_grid):
+        with open(results_directory_name / "dataset_configs.txt", "a") as f:
+            f.write(f"[{fds_id/len(dataset_param_grid)}]\n")
+            f.write(f"{dataset_param_grid_single}\n")
 
     for (
         fds_kwargs,
@@ -208,6 +171,18 @@ if __name__ == "__main__":
             )
             print("FL config:")
             pprint(fl_config)
-            run_fl(
-                fds, fds_kwargs, partitioner_kwargs, fl_config, label_name
+            (
+                metrics_train_list,
+                metrics_eval_list,
+                metrics_aggregated_train_list,
+                metrics_aggregated_eval_list,
+                test_res,
+            ) = run_fl(fds, fds_kwargs, partitioner_kwargs, fl_config, label_name)
+            save_fl_results(
+                results_directory_name,
+                metrics_train_list,
+                metrics_eval_list,
+                metrics_aggregated_train_list,
+                metrics_aggregated_eval_list,
+                test_res,
             )
