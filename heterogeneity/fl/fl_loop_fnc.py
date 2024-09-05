@@ -4,17 +4,8 @@ import numpy as np
 import ray
 
 from heterogeneity.fl.early_stopping import EarlyStopping
-from heterogeneity.fl.model import CNNNet, CNNNetGray
 from heterogeneity.fl.utils import set_weights, test, train, weighted_average
 from heterogeneity.fl.weights_aggregation import fedavg
-
-
-def get_net(dataset_name: str, num_classes):
-    if dataset_name == "mnist":
-        net = CNNNetGray(num_classes=num_classes)
-    else:
-        net = CNNNet(num_classes=num_classes)
-    return net
 
 
 def run_fl_experiment(
