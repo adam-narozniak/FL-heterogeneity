@@ -18,6 +18,8 @@ def run_fl_experiment(
     testloaders,
     centralized_dl,
     net,
+    optimizer_class,
+    optimizer_kwargs,
     num_local_epochs: int,
     features_name: str,
     label_name: str,
@@ -60,6 +62,8 @@ def run_fl_experiment(
                 net=net,
                 trainloader=trainloaders[train_client],
                 epochs=num_local_epochs,
+                optimizer_class=optimizer_class,
+                optimizer_kwargs=optimizer_kwargs,
                 features_name=features_name,
                 label_name=label_name,
             )

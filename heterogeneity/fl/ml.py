@@ -5,12 +5,13 @@ from heterogeneity.fl.ml_utils import DEVICE, get_weights
 
 
 @ray.remote(num_cpus=1)
-def train(net, trainloader, epochs, features_name="img", label_name="label"):
+def train(net, trainloader, epochs, optimizer_class, optimizer_kwargs, features_name="img", label_name="label"):
     """Train the model on the training set."""
     net.to(DEVICE)
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     # optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.00001)
-    optimizer = torch.optim.Adam(net.parameters())
+    # optimizer = torch.optim.Adam(net.parameters())
+    optimizer = optimizer_class(net.parameters(), **optimizer_kwargs)
     net.train()
     train_loss, train_acc = 0.0, 0.0
     num_examples = len(trainloader.dataset)
