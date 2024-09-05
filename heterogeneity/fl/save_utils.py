@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from heterogeneity.experiments_fl import fds_kwargs, partitioner_kwargs
-
 
 def save_fl_results(
+    fds_kwargs,
+    partitioner_kwargs,
     results_directory_name: str | Path,
     metrics_train_list,
     metrics_eval_list,
