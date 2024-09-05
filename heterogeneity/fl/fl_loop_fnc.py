@@ -89,10 +89,14 @@ def run_fl_experiment(
         # Aggregate the results
         global_weights = fedavg(weights_list, num_samples_list)
         set_weights(net, global_weights)
-        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Global model updated")
+        print(
+            f"ROUND[{comunication_round}/{comunication_rounds}]: Global model updated"
+        )
 
         metrics_aggregated = weighted_average(metrics_list, num_samples_list)
-        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated train metrics")
+        print(
+            f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated train metrics"
+        )
         print(metrics_aggregated)
         metrics_aggregated_train_list.append(metrics_aggregated)
 
