@@ -27,6 +27,17 @@ config_cifar100 = {
     "shuffle": [True],
     "seed": list(range(42, 47))
 }
+# Configure FEMNIST as if it didn't have the writer_id
+config_femnist_not_natural = {
+    "dataset": ["flwrlabs/femnist"],
+    "split": ["train"],
+    "partition_by": ["character"],
+    "label_name": ["character"],
+    "features_name": ["image"],
+    "shuffle": [True],
+    "seed": list(range(42, 47))
+
+}
 
 # NaturalID datasets
 
