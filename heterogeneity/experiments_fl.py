@@ -5,6 +5,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 from flwr_datasets import FederatedDataset
+import torch
 
 from configs.fds_configs import (
     config_cifar10,
@@ -23,7 +24,9 @@ from configs.partitioner_configs import (
     no_natural_partitioner_configs,
 )
 from heterogeneity.config_utils import yeild_configs
-from heterogeneity.fl.fl_loop_fnc import create_dataloaders, get_net, run_fl_experiment
+from heterogeneity.fl.data import create_dataloaders
+from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
+from heterogeneity.fl.model import get_net
 
 
 def run_experiments_from_configs(
@@ -33,6 +36,11 @@ def run_experiments_from_configs(
     fl_config: Dict,
     label_name: str,
 ):
+    # seed in torch for model weights init + dataloader shuffling
+    seed = fl_config["seed"]
+    # same seed in numpy for clients selection for each communication round 
+    # (train and test clients are selected seperately from the same rng)
+    torch.manual_seed(seed) 
     try:
         trainloaders, testloaders, centralized_dataloader = create_dataloaders(
             fds,
@@ -106,7 +114,7 @@ def run_experiments_from_configs(
         ]
         for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
             save_results_dir_path = (
-                f"results-test-refactoring2/{fds_kwargs['dataset']}/"
+                f"results-iid-adam/{fds_kwargs['dataset']}/"
                 f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{metrics_name}.csv"
             )
 
@@ -171,10 +179,12 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_cifar10, config_cifar100, config_mnist]
+        dataset_param_grid = [config_mnist, config_cifar10, config_cifar100]
         partitioner_param_grid = [
-            config_iid_partitioner
-        ]  # config_iid_partitioner, config_dirichlet_partitioner]config_pathological
+            config_iid_partitioner,
+            # config_dirichlet_partitioner,
+            # config_pathological,
+        ]
     else:
         raise ValueError(f"Invalid mode: {MODE}")
     # Single seed
