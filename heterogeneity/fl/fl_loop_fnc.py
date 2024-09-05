@@ -13,7 +13,7 @@ import ray
 import time
 from heterogeneity.fl.data import create_apply_transforms
 
-def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str, seed: int) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]: 
+def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str, seed: int = 42) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]: 
     num_partitions = fds.partitioners["train"].num_partitions
     partitions = [
         fds.load_partition(partition_id) for partition_id in range(num_partitions)
