@@ -1,34 +1,40 @@
-
+import time
 from typing import List, Tuple
-from datasets import Dataset
-from flwr_datasets import FederatedDataset
+
 import numpy as np
+import ray
+from flwr_datasets import FederatedDataset
 from torch.utils.data import DataLoader
+
+from heterogeneity.fl.data import create_apply_transforms, predefined_transforms
 from heterogeneity.fl.early_stopping import EarlyStopping
 from heterogeneity.fl.model import CNNNet, CNNNetGray
 from heterogeneity.fl.utils import set_weights, test, train, weighted_average
 from heterogeneity.fl.weights_aggregation import fedavg
-from heterogeneity.fl.data import predefined_transforms
-import ray
-import time
-from heterogeneity.fl.data import create_apply_transforms
 
-def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str, seed: int = 42) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]: 
+
+def create_dataloaders(
+    fds: FederatedDataset, features_name: str, label_name: str, seed: int = 42
+) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]:
     num_partitions = fds.partitioners["train"].num_partitions
     partitions = [
         fds.load_partition(partition_id) for partition_id in range(num_partitions)
     ]
-    
+
     # For performance reasons flatten indices (it would work better if they were not shuffled during each train)
     # for partition_id, partition in enumerate(partitions):
     #     partitions[partition_id] = partition.flatten_indices()
-    image_mode = "grayscale" if fds.load_split("train").info.dataset_name == "mnist" else "rgb"
 
-        
-    apply_transforms = create_apply_transforms(
-        predefined_transforms[image_mode], features_name=features_name, label_name=label_name
+    image_mode = (
+        "grayscale" if fds.load_split("train").info.dataset_name == "mnist" else "rgb"
     )
-    
+
+    apply_transforms = create_apply_transforms(
+        predefined_transforms[image_mode],
+        features_name=features_name,
+        label_name=label_name,
+    )
+
     centralized_ds = fds.load_split("test")
     centralized_ds = centralized_ds.with_transform(apply_transforms)
     train_partitions = []
@@ -45,7 +51,6 @@ def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str
     trainloaders = []
     testloaders = []
     for train_partition, test_partition in zip(train_partitions, test_partitions):
-
         train_partition = train_partition.with_transform(apply_transforms)
         test_partition = test_partition.with_transform(apply_transforms)
 
@@ -53,22 +58,37 @@ def create_dataloaders(fds: FederatedDataset, features_name:str, label_name: str
         testloader = DataLoader(test_partition, batch_size=32, shuffle=False)
         trainloaders.append(trainloader)
         testloaders.append(testloader)
-    
+
     centralized_dl = DataLoader(centralized_ds, batch_size=32, shuffle=False)
-    
+
     return trainloaders, testloaders, centralized_dl
 
-def get_net(dataset_name:str, num_classes):
+
+def get_net(dataset_name: str, num_classes):
     if dataset_name == "mnist":
         net = CNNNetGray(num_classes=num_classes)
     else:
         net = CNNNet(num_classes=num_classes)
     return net
 
-def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_per_round_eval, trainloaders, testloaders, centralized_dl, net, num_local_epochs: int, features_name: str, label_name: str, apply_early_stopping: bool = True, seed: int=42):
+
+def run_fl_experiment(
+    comunication_rounds,
+    n_clients_per_round_train,
+    n_clients_per_round_eval,
+    trainloaders,
+    testloaders,
+    centralized_dl,
+    net,
+    num_local_epochs: int,
+    features_name: str,
+    label_name: str,
+    apply_early_stopping: bool = True,
+    seed: int = 42,
+):
     # This is the intial model (it will be update after each communication round)
     total_num_clients = len(trainloaders)
-    
+
     context = ray.init()
     print(context.dashboard_url)
     num_cpus = ray.available_resources().get("CPU")
@@ -86,7 +106,6 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
     if apply_early_stopping:
         early_stopping = EarlyStopping()
     for comunication_round in range(1, comunication_rounds + 1):
-
         # Federated training
         train_refs = []
         train_res_list = []
@@ -100,7 +119,11 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for train_client in selected_train_clients:
             print(f"Training client {train_client}")
             train_ref = train.remote(
-                net=net, trainloader=trainloaders[train_client], epochs=num_local_epochs, features_name=features_name, label_name=label_name
+                net=net,
+                trainloader=trainloaders[train_client],
+                epochs=num_local_epochs,
+                features_name=features_name,
+                label_name=label_name,
             )
             train_refs.append(train_ref)
             # This ways makes the Object Store Memory very low < 2 MB while having 1000 started at the same time makes it about 240 MB
@@ -116,7 +139,7 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
                 continue
             elif len(train_refs) > in_flight_tasks:
                 raise ValueError(
-                    "Too many tasks in flight. I don't know how it happend."
+                    "Too many tasks in flight. This behavior should not happen."
                 )
 
         train_res_list.extend(ray.get(train_refs))
@@ -130,10 +153,10 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         # Aggregate the results
         global_weights = fedavg(weights_list, num_samples_list)
         set_weights(net, global_weights)
-        print("Global model updated")
+        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Global model updated")
 
         metrics_aggregated = weighted_average(metrics_list, num_samples_list)
-        print("Aggregated metrics")
+        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated train metrics")
         print(metrics_aggregated)
         metrics_aggregated_train_list.append(metrics_aggregated)
 
@@ -148,7 +171,10 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         for eval_client in selected_eval_clients:
             print(f"Eval client {eval_client}")
             eval_ref = test.remote(
-                net=net, testloader=testloaders[eval_client], features_name=features_name, label_name=label_name
+                net=net,
+                testloader=testloaders[eval_client],
+                features_name=features_name,
+                label_name=label_name,
             )
             eval_refs.append(eval_ref)
             if len(eval_refs) == in_flight_tasks:
@@ -167,24 +193,28 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
                 )
 
         eval_res_list.extend(ray.get(eval_refs))
-
         metrics_eval_list.append(eval_res_list)
 
         # Transform eval results
         eval_num_samples_list = tuple(elem[0] for elem in eval_res_list)
         eval_metrics_list = tuple(elem[1] for elem in eval_res_list)
 
-        eval_metrics_aggregated = weighted_average(eval_metrics_list, eval_num_samples_list)
-        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated eval metrics")
+        eval_metrics_aggregated = weighted_average(
+            eval_metrics_list, eval_num_samples_list
+        )
+        print(
+            f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated eval metrics"
+        )
         print(eval_metrics_aggregated)
         metrics_aggregated_eval_list.append(eval_metrics_aggregated)
 
-
-        print(f"Communication round {comunication_round} finshed.")
+        print(f"ROUND[{comunication_round}/{comunication_rounds}]: Finshed.")
 
         # Check if early stopping should be triggered
         if apply_early_stopping:
-            early_stopping(eval_metrics_aggregated["eval_loss"], net, comunication_round)
+            early_stopping(
+                eval_metrics_aggregated["eval_loss"], net, comunication_round
+            )
             if early_stopping.early_stop:
                 print(
                     f"Early stopping triggered. Stopping training after {comunication_round}."
@@ -207,7 +237,16 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
         )
         early_stopping.load_best_model(net)
 
-    test_res = ray.get(test.remote(net=net, testloader=centralized_dl, features_name=features_name, label_name=label_name))[1]
+    # Evaluate the final model on the test set
+    print("Evaluating the final model on the test set")
+    test_res = ray.get(
+        test.remote(
+            net=net,
+            testloader=centralized_dl,
+            features_name=features_name,
+            label_name=label_name,
+        )
+    )[1]
     if apply_early_stopping:
         test_res["best_communication_round"] = early_stopping.best_round
     else:
@@ -217,16 +256,15 @@ def run_fl_experiment(comunication_rounds, n_clients_per_round_train, n_clients_
     print(f"Final accuracy: {final_acc}, final loss: {final_loss}")
 
     ray.shutdown()
-    return metrics_train_list, metrics_eval_list, metrics_aggregated_train_list, metrics_aggregated_eval_list, test_res
+    return (
+        metrics_train_list,
+        metrics_eval_list,
+        metrics_aggregated_train_list,
+        metrics_aggregated_eval_list,
+        test_res,
+    )
 
-
-
-
-    # Evaluate the final model on the test set
-    # print("Evaluating the final model on the test set")
-
-    # pd.DataFrame([[dataset_name, final_loss, final_acc]], columns=["dataset_name", "test_loss", "test_acc"]).to_csv("./fl_centralized_test_metrics.csv")
-    # # Save test loss and accuracy
+    # Better to return the model in the future not to have it saved inside the fl loop fnc
     # if save_final_model:
     #     print("Saving model checkpoint")
     #     # todo adjust the path to include informatinon about the dataset and and params
