@@ -1,7 +1,7 @@
 import ray
 import torch
 
-from heterogeneity.fl.utils import DEVICE, get_weights
+from heterogeneity.fl.ml_utils import DEVICE, get_weights
 
 
 @ray.remote(num_cpus=1)
