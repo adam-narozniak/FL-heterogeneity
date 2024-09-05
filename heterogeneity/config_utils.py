@@ -8,6 +8,7 @@ from flwr_datasets.partitioner import (
     ShardPartitioner,
 )
 
+from heterogeneity.fl.pathological_partitioner import PathologicalPartitioner as PathologicalPartitionerLocal
 from heterogeneity.partitioners_utils import create_lognormal_partition_sizes
 
 
@@ -42,6 +43,7 @@ def yeild_configs(datasets_param_grid, partitioner_param_grid):
                         DirichletPartitioner,
                         ShardPartitioner,
                         PathologicalPartitioner,
+                        PathologicalPartitionerLocal
                     ]:
                         partitioner_kwargs["seed"] = single_fds["seed"]
                         if "partition_by" in single_fds:

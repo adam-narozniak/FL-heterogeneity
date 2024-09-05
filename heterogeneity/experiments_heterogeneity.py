@@ -1,15 +1,19 @@
 from pathlib import Path
+from pprint import pprint
 from typing import Dict
 
+import numpy as np
+import pandas as pd
 from flwr_datasets import FederatedDataset
 
 from configs.fds_configs import (
-    natural_datasets_param_grid,
-    no_natural_datasets_param_grid,
     config_cifar10,
     config_cifar100,
-    config_mnist,
     config_femnist,
+    config_femnist_not_natural,
+    config_mnist,
+    natural_datasets_param_grid,
+    no_natural_datasets_param_grid,
 )
 from configs.metrics_configs import (
     all_metrics,
@@ -18,17 +22,16 @@ from configs.metrics_configs import (
     metrics_kl,
 )
 from configs.partitioner_configs import (
+    config_dirichlet_partitioner,
+    config_iid_partitioner,
+    config_pathological,
+    config_pathological_deterministic,
+    config_pathological_random,
     natural_partitioner_configs,
     no_natural_partitioner_configs,
-    config_iid_partitioner,
-    config_dirichlet_partitioner,
-    config_pathological,
-    config_pathological_random,
-    config_pathological_deterministic,
 )
 from heterogeneity.config_utils import yeild_configs
-import numpy as np
-import pandas as pd
+
 
 def run_heterogeneity_experiment(fds: FederatedDataset, fds_kwargs: Dict, partitioner_kwargs: Dict, metric_config: Dict, label_name: str):
     metrics_fnc = metric_config["object"]
@@ -99,7 +102,7 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_cifar10, config_cifar100, config_mnist, config_femnist]
+        dataset_param_grid = [config_cifar10, config_cifar100, config_mnist, config_femnist_not_natural]
         partitioner_param_grid = [config_iid_partitioner, config_dirichlet_partitioner, config_pathological]
     else:
         raise ValueError(f"Invalid MODE: {MODE}")
@@ -126,6 +129,8 @@ if __name__ == "__main__":
             print(
                 f"Running Heterogeneity for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}"
             )
+            print("Partitioner kwargs:")
+            pprint(partitioner_kwargs)
             run_heterogeneity_experiment(
                 fds, fds_kwargs, partitioner_kwargs, metrics_config, label_name
             )
