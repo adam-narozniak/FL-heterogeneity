@@ -4,6 +4,7 @@ from pprint import pprint
 from typing import Dict
 
 import numpy as np
+from sklearn.model_selection import ParameterGrid
 import torch
 from flwr_datasets import FederatedDataset
 
@@ -23,6 +24,7 @@ from configs.partitioner_configs import (
     natural_partitioner_configs,
     no_natural_partitioner_configs,
 )
+from configs.optimizer_configs import optimizer_configs
 from heterogeneity.config_utils import yeild_configs
 from heterogeneity.fl.data import create_dataloaders
 from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
@@ -35,6 +37,8 @@ def run_fl(
     fds_kwargs: Dict,
     partitioner_kwargs: Dict,
     fl_config: Dict,
+    optimizer_class,
+    optimier_kwargs,
     label_name: str,
 ):
     # seed in torch for model weights init + dataloader shuffling
@@ -82,6 +86,8 @@ def run_fl(
             testloaders,
             centralized_dataloader,
             net,
+            optimizer_class,
+            optimier_kwargs,
             num_local_epochs,
             features_name,
             label_name,
@@ -125,7 +131,6 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     experiment_name: str = args.experiment_name
-
     results_directory_name = Path(f"results/{experiment_name}")
     results_directory_name.mkdir(parents=True, exist_ok=True)
 
@@ -153,10 +158,22 @@ if __name__ == "__main__":
         dataset_param["seed"] = [42]
 
     # Save all the configs before starting the experiments
-    for fds_id, dataset_param_grid_single in enumerate(dataset_param_grid):
+    for idx, dataset_param_grid_single in enumerate(dataset_param_grid):
         with open(results_directory_name / "dataset_configs.txt", "a") as f:
-            f.write(f"[{fds_id/len(dataset_param_grid)}]\n")
+            f.write(f"[{idx+1}/{len(dataset_param_grid)}]\n")
             f.write(f"{dataset_param_grid_single}\n")
+    for idx, param_grid_single in enumerate(partitioner_param_grid):
+        with open(results_directory_name / "partitioner_configs.txt", "a") as f:
+            f.write(f"[{idx+1}/{len(partitioner_param_grid)}]\n")
+            f.write(f"{param_grid_single}\n")
+    for idx, fl_grid_single in enumerate(fl_configs):
+        with open(results_directory_name / "fl_configs.txt", "a") as f:
+            f.write(f"[{idx+1}/{len(fl_configs)}]\n")
+            f.write(f"{fl_grid_single}\n")
+    for idx, optim_grid_single in enumerate(optimizer_configs):
+        with open(results_directory_name / "optim_configs.txt", "a") as f:
+            f.write(f"[{idx+1}/{len(optimizer_configs)}]\n")
+            f.write(f"{optim_grid_single}\n")
 
     for (
         fds_kwargs,
@@ -165,24 +182,34 @@ if __name__ == "__main__":
         label_name,
     ) in yeild_configs(dataset_param_grid, partitioner_param_grid):
         fds = FederatedDataset(**fds_kwargs)
-        for fl_config in fl_configs:
-            print(
-                f"Running Heterogeneity for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}"
-            )
-            print("FL config:")
-            pprint(fl_config)
-            (
-                metrics_train_list,
-                metrics_eval_list,
-                metrics_aggregated_train_list,
-                metrics_aggregated_eval_list,
-                test_res,
-            ) = run_fl(fds, fds_kwargs, partitioner_kwargs, fl_config, label_name)
-            save_fl_results(
-                results_directory_name,
-                metrics_train_list,
-                metrics_eval_list,
-                metrics_aggregated_train_list,
-                metrics_aggregated_eval_list,
-                test_res,
-            )
+        optimizer_configs_grid = ParameterGrid(optimizer_configs)
+        for optimizer in optimizer_configs_grid:
+            print("Optimizer config:")
+            pprint(optimizer)
+            optimizer_class = optimizer.pop("object")
+            optimizer_kwargs = optimizer
+            results_directory_name = Path(f"results/{experiment_name}/{optimizer_class.__name__}")
+            results_directory_name.mkdir(parents=True, exist_ok=True)
+            for fl_config in fl_configs:
+                print(
+                    f"Running Heterogeneity for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}"
+                )
+                print("FL config:")
+                pprint(fl_config)
+                (
+                    metrics_train_list,
+                    metrics_eval_list,
+                    metrics_aggregated_train_list,
+                    metrics_aggregated_eval_list,
+                    test_res,
+                ) = run_fl(fds, fds_kwargs, partitioner_kwargs, fl_config, optimizer_class, optimizer_kwargs, label_name)
+                save_fl_results(
+                    fds_kwargs,
+                    partitioner_kwargs,
+                    results_directory_name,
+                    metrics_train_list,
+                    metrics_eval_list,
+                    metrics_aggregated_train_list,
+                    metrics_aggregated_eval_list,
+                    test_res,
+                )
