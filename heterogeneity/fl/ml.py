@@ -8,7 +8,7 @@ from heterogeneity.fl.utils import DEVICE, get_weights
 def train(net, trainloader, epochs, features_name="img", label_name="label"):
     """Train the model on the training set."""
     net.to(DEVICE)
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     # optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.00001)
     optimizer = torch.optim.Adam(net.parameters())
     net.train()
