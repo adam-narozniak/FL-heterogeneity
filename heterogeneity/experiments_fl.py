@@ -24,7 +24,7 @@ from configs.partitioner_configs import (
     natural_partitioner_configs,
     no_natural_partitioner_configs,
 )
-from configs.optimizer_configs import optimizer_configs
+from configs.optimizer_configs import optimizer_configs, adam_config
 from heterogeneity.config_utils import yeild_configs
 from heterogeneity.fl.data import create_dataloaders
 from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
@@ -145,12 +145,13 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_mnist]
+        dataset_param_grid = [config_femnist]#config_mnist, config_cifar10, config_cifar100]
         partitioner_param_grid = [
             config_iid_partitioner,
             # config_dirichlet_partitioner,
             # config_pathological,
         ]
+        optimizer_configs_to_be_grid = [adam_config]
     else:
         raise ValueError(f"Invalid mode: {MODE}")
     # Single seed
@@ -182,7 +183,7 @@ if __name__ == "__main__":
         label_name,
     ) in yeild_configs(dataset_param_grid, partitioner_param_grid):
         fds = FederatedDataset(**fds_kwargs)
-        optimizer_configs_grid = ParameterGrid(optimizer_configs)
+        optimizer_configs_grid = ParameterGrid(optimizer_configs_to_be_grid)
         for optimizer in optimizer_configs_grid:
             print("Optimizer config:")
             pprint(optimizer)
