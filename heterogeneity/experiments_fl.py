@@ -188,7 +188,7 @@ if __name__ == "__main__":
             pprint(optimizer)
             optimizer_class = optimizer.pop("object")
             optimizer_kwargs = optimizer
-            results_directory_name = Path(f"results/{experiment_name}/{optimizer_class.__name__}")
+            results_directory_name = Path(f"results/{experiment_name}/{optimizer_class.__name__+str(optimizer_kwargs).replace(' ', '')}")
             results_directory_name.mkdir(parents=True, exist_ok=True)
             for fl_config in fl_configs:
                 print(
