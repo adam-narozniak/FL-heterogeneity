@@ -11,7 +11,7 @@ from flwr_datasets import FederatedDataset
 from configs.fds_configs import (
     config_cifar10,
     config_cifar100,
-    config_femnist,
+    config_femnist_not_natural,
     config_mnist,
     natural_datasets_param_grid,
     no_natural_datasets_param_grid,
@@ -145,11 +145,11 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_femnist]#config_mnist, config_cifar10, config_cifar100]
+        dataset_param_grid = [config_femnist_not_natural]#, config_cifar100, config_mnist, config_cifar10]
         partitioner_param_grid = [
-            config_iid_partitioner,
             # config_dirichlet_partitioner,
-            # config_pathological,
+            config_pathological,
+            config_iid_partitioner,
         ]
         optimizer_configs_to_be_grid = [adam_config]
     else:
