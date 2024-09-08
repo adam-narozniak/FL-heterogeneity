@@ -40,6 +40,7 @@ def run_fl(
     fl_config: Dict,
     optimizer_class,
     optimier_kwargs,
+    features_name: str,
     label_name: str,
 ):
     # seed in torch for model weights init + dataloader shuffling
@@ -219,6 +220,7 @@ if __name__ == "__main__":
                     fl_config,
                     optimizer_class,
                     optimizer_kwargs,
+                    features_name,
                     label_name,
                 )
                 experiment_save_path = f"{results_directory_name}/{fds_kwargs['dataset']}/"\
