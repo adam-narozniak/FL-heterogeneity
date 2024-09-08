@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 import ray
+import wandb
 
 from heterogeneity.fl.early_stopping import EarlyStopping
 from heterogeneity.fl.metrics_aggregation import weighted_average
@@ -30,6 +31,7 @@ def run_fl_experiment(
     total_num_clients = len(trainloaders)
 
     context = ray.init()
+    print("Ray initialized")
     print(context.dashboard_url)
     num_cpus = ray.available_resources().get("CPU")
     in_flight_tasks = num_cpus
@@ -104,6 +106,7 @@ def run_fl_experiment(
             f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated train metrics"
         )
         print(metrics_aggregated)
+        wandb.log(data={"communication_round": comunication_round, **metrics_aggregated}, step=comunication_round)
         metrics_aggregated_train_list.append(metrics_aggregated)
 
         # Federated evaluation
@@ -152,6 +155,7 @@ def run_fl_experiment(
             f"ROUND[{comunication_round}/{comunication_rounds}]: Aggregated eval metrics"
         )
         print(eval_metrics_aggregated)
+        wandb.log(data={"communication_round": comunication_round, **eval_metrics_aggregated}, step=comunication_round)
         metrics_aggregated_eval_list.append(eval_metrics_aggregated)
 
         print(f"ROUND[{comunication_round}/{comunication_rounds}]: Finshed.")
@@ -194,14 +198,22 @@ def run_fl_experiment(
         )
     )[1]
     if apply_early_stopping:
-        test_res["best_communication_round"] = early_stopping.best_round
+        best_communication_round = early_stopping.best_round
     else:
-        test_res["best_communication_round"] = comunication_rounds
-
+        best_communication_round = comunication_round
+    test_res["best_communication_round"] = best_communication_round
     final_loss, final_acc = test_res["eval_loss"], test_res["eval_acc"]
     print(f"Final accuracy: {final_acc}, final loss: {final_loss}")
 
+    # Log the best (last or the early stopping) federated eval metrics
+    for fl_eval_key in eval_metrics_aggregated.keys():
+        wandb.run.summary[fl_eval_key] = metrics_aggregated_eval_list[best_communication_round - 1][fl_eval_key]
+
+    for test_r in test_res:
+        wandb.run.summary[test_r.replace("eval_", "final_test/")] = test_res[test_r]
+
     ray.shutdown()
+    print("Ray shutdown")
     return (
         net,
         metrics_train_list,
