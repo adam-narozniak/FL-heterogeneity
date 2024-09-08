@@ -6,6 +6,7 @@ import pandas as pd
 def save_fl_results(
     fds_kwargs,
     partitioner_kwargs,
+    optimizer_kwargs,
     results_directory_name: str | Path,
     metrics_train_list,
     metrics_eval_list,
@@ -28,9 +29,7 @@ def save_fl_results(
         "test_res",
     ]
     for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-        results_save_path = (
-            f"{results_directory_name}/{fds_kwargs['dataset']}/"
-            f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{metrics_name}.csv"
+        results_save_path = ("{results_directory_name}/{metrics_name}.csv"
         )
 
         results_save_path = Path(results_save_path)
