@@ -4,9 +4,10 @@ from pprint import pprint
 from typing import Dict
 
 import numpy as np
-from sklearn.model_selection import ParameterGrid
 import torch
+import wandb
 from flwr_datasets import FederatedDataset
+from sklearn.model_selection import ParameterGrid
 
 from configs.fds_configs import (
     config_cifar10,
@@ -17,6 +18,7 @@ from configs.fds_configs import (
     no_natural_datasets_param_grid,
 )
 from configs.fl_configs import fl_configs
+from configs.optimizer_configs import adam_config, optimizer_configs
 from configs.partitioner_configs import (
     config_dirichlet_partitioner,
     config_iid_partitioner,
@@ -24,7 +26,6 @@ from configs.partitioner_configs import (
     natural_partitioner_configs,
     no_natural_partitioner_configs,
 )
-from configs.optimizer_configs import optimizer_configs, adam_config
 from heterogeneity.config_utils import yeild_configs
 from heterogeneity.fl.data import create_dataloaders
 from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
@@ -96,6 +97,7 @@ def run_fl(
         )
     except ValueError as e:
         print(f"Failed to load partitions: {e}")
+        print(e.traceback)
         metrics_train_list = np.nan
         metrics_eval_list = np.nan
         metrics_aggregated_train_list = np.nan
@@ -145,11 +147,13 @@ if __name__ == "__main__":
         partitioner_param_grid = no_natural_partitioner_configs
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
-        dataset_param_grid = [config_femnist_not_natural]#, config_cifar100, config_mnist, config_cifar10]
-        partitioner_param_grid = [
+        dataset_param_grid = [
+            config_mnist
+        ]  # , config_cifar100, config_mnist, config_cifar10]
+        partitioner_param_grid = [config_iid_partitioner
             # config_dirichlet_partitioner,
-            config_pathological,
-            config_iid_partitioner,
+            # config_pathological,
+            # config_iid_partitioner,
         ]
         optimizer_configs_to_be_grid = [adam_config]
     else:
@@ -189,24 +193,41 @@ if __name__ == "__main__":
             pprint(optimizer)
             optimizer_class = optimizer.pop("object")
             optimizer_kwargs = optimizer
-            results_directory_name = Path(f"results/{experiment_name}/{optimizer_class.__name__+str(optimizer_kwargs).replace(' ', '')}")
-            results_directory_name.mkdir(parents=True, exist_ok=True)
+
             for fl_config in fl_configs:
+                wandb.init(
+                    project="fl-heterogeneity",
+                    name=f"{experiment_name}/{fds_kwargs['dataset']}/"
+                    f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{optimizer_class.__name__+str(optimizer_kwargs).replace(' ', '')}",
+                )
                 print(
                     f"Running Heterogeneity for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}"
                 )
                 print("FL config:")
                 pprint(fl_config)
+
                 (
                     metrics_train_list,
                     metrics_eval_list,
                     metrics_aggregated_train_list,
                     metrics_aggregated_eval_list,
                     test_res,
-                ) = run_fl(fds, fds_kwargs, partitioner_kwargs, fl_config, optimizer_class, optimizer_kwargs, label_name)
+                ) = run_fl(
+                    fds,
+                    fds_kwargs,
+                    partitioner_kwargs,
+                    fl_config,
+                    optimizer_class,
+                    optimizer_kwargs,
+                    label_name,
+                )
+                experiment_save_path = f"{results_directory_name}/{fds_kwargs['dataset']}/"\
+                    f"{fds_kwargs['partitioners']['train'].__class__.__name__}/"\
+                    f"{optimizer_class.__name__+str(optimizer_kwargs).replace(' ', '')}"
                 save_fl_results(
                     fds_kwargs,
                     partitioner_kwargs,
+                    optimizer_kwargs,
                     results_directory_name,
                     metrics_train_list,
                     metrics_eval_list,
@@ -214,3 +235,4 @@ if __name__ == "__main__":
                     metrics_aggregated_eval_list,
                     test_res,
                 )
+                wandb.finish()
