@@ -313,4 +313,6 @@ class PathologicalPartitioner(Partitioner):
             self._num_classes_per_partition: int = int(
                 self._num_classes_per_partition_int_or_float * len(self.dataset.unique(self._partition_by))
             )
+        else:
+            self._num_classes_per_partition = self._num_classes_per_partition_int_or_float
         assert isinstance(self._num_classes_per_partition, int)
