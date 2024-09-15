@@ -163,7 +163,7 @@ def run_fl_experiment(
         # Check if early stopping should be triggered
         if apply_early_stopping:
             early_stopping(
-                eval_metrics_aggregated["eval_loss"], net, comunication_round
+                eval_metrics_aggregated["eval/loss"], net, comunication_round
             )
             if early_stopping.early_stop:
                 print(
@@ -202,7 +202,7 @@ def run_fl_experiment(
     else:
         best_communication_round = comunication_round
     test_res["best_communication_round"] = best_communication_round
-    final_loss, final_acc = test_res["eval_loss"], test_res["eval_acc"]
+    final_loss, final_acc = test_res["eval/loss"], test_res["eval/acc"]
     print(f"Final accuracy: {final_acc}, final loss: {final_loss}")
 
     # Log the best (last or the early stopping) federated eval metrics
@@ -210,7 +210,7 @@ def run_fl_experiment(
         wandb.run.summary[fl_eval_key] = metrics_aggregated_eval_list[best_communication_round - 1][fl_eval_key]
 
     for test_r in test_res:
-        wandb.run.summary[test_r.replace("eval_", "final_test/")] = test_res[test_r]
+        wandb.run.summary[test_r.replace("eval/", "final_test/")] = test_res[test_r]
 
     ray.shutdown()
     print("Ray shutdown")
