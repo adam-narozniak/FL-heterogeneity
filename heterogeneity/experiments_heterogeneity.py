@@ -63,7 +63,7 @@ def run_heterogeneity_experiment(fds: FederatedDataset, fds_kwargs: Dict, partit
     # Save exmperiments results as quick as they are available
     # (then append as the new experiments come)
     save_results_dir_path = (
-        f"results-heterogeneity-2024-09-05/{fds_kwargs['dataset']}/"
+        f"results-heterogeneity/{fds_kwargs['dataset']}/"
         f"{fds.partitioners['train'].__class__.__name__}/{metrics_fnc.__name__}.csv"
     )
     save_results_dir_path = Path(save_results_dir_path)
