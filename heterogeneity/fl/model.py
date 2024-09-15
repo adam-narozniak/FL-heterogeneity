@@ -9,7 +9,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def get_net(dataset_name: str, num_classes):
-    if dataset_name == "mnist":  # image size 1x28x28
+    if dataset_name in ["mnist", "femnist"]:  # image size 1x28x28
         net = CNNNetGray(num_classes=num_classes)
     elif dataset_name in ["cifar10", "cifar100"]:  # image size 3x32x32
         net = CNNNet(num_classes=num_classes)
@@ -39,7 +39,7 @@ class CNNNet(nn.Module):
 
 
 class CNNNetGray(nn.Module):
-    # For MNIST 1x28x28 images
+    # for 1x28x28 images
     def __init__(self, num_classes) -> None:
         super(CNNNetGray, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
