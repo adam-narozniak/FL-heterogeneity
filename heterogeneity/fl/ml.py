@@ -9,8 +9,6 @@ def train(net, trainloader, epochs, optimizer_class, optimizer_kwargs, features_
     """Train the model on the training set."""
     net.to(DEVICE)
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
-    # optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=0.00001)
-    # optimizer = torch.optim.Adam(net.parameters())
     optimizer = optimizer_class(net.parameters(), **optimizer_kwargs)
     net.train()
     train_loss, train_acc = 0.0, 0.0
@@ -36,7 +34,7 @@ def train(net, trainloader, epochs, optimizer_class, optimizer_kwargs, features_
     return (
         get_weights(net),
         len(trainloader.dataset),
-        {"train_loss": train_loss, "train_acc": train_acc},
+        {"train/loss": train_loss, "train/acc": train_acc},
     )
 
 
@@ -57,4 +55,4 @@ def test(net, testloader, features_name="img", label_name="label"):
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
     accuracy = correct / num_examples
     avg_loss = total_loss / num_examples
-    return len(testloader.dataset), {"eval_loss": avg_loss, "eval_acc": accuracy}
+    return len(testloader.dataset), {"eval/loss": avg_loss, "eval/acc": accuracy}
