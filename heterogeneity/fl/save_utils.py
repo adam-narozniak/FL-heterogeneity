@@ -29,8 +29,7 @@ def save_fl_results(
         "test_res",
     ]
     for metrics_name, metric_to_save in zip(metrics_names, metrics_to_save):
-        results_save_path = ("{results_directory_name}/{metrics_name}.csv"
-        )
+        results_save_path = f"{results_directory_name}/{metrics_name}.csv"
 
         results_save_path = Path(results_save_path)
         include_header = True
