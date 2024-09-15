@@ -31,6 +31,7 @@ from heterogeneity.fl.data import create_dataloaders
 from heterogeneity.fl.fl_loop_fnc import run_fl_experiment
 from heterogeneity.fl.model import get_net
 from heterogeneity.fl.save_utils import save_fl_results
+from heterogeneity.fds_utils import create_fds
 
 
 def run_fl(
@@ -97,15 +98,14 @@ def run_fl(
             seed=fl_seed,
         )
     except ValueError as e:
-        print(f"Failed to load partitions: {e}")
-        print(e.traceback)
+        print(f"Probably failed to load partitions.\n{e}")
         metrics_train_list = np.nan
         metrics_eval_list = np.nan
         metrics_aggregated_train_list = np.nan
         metrics_aggregated_eval_list = np.nan
         test_res = {
-            "eval_loss": np.nan,
-            "eval_acc": np.nan,
+            "eval/loss": np.nan,
+            "eval/acc": np.nan,
             "best_communication_round": np.nan,
         }
     return (
@@ -149,12 +149,15 @@ if __name__ == "__main__":
     elif MODE == "CUSTOM":
         print("Running CUSTOM")
         dataset_param_grid = [
-            config_mnist
-        ]  # , config_cifar100, config_mnist, config_cifar10]
-        partitioner_param_grid = [config_iid_partitioner
-            # config_dirichlet_partitioner,
-            # config_pathological,
+            # config_femnist_not_natural,
+            config_mnist,
+            config_cifar10,
+            config_cifar100, 
+        ]  # , ]
+        partitioner_param_grid = [
             # config_iid_partitioner,
+            # config_dirichlet_partitioner,
+            config_pathological,
         ]
         optimizer_configs_to_be_grid = [adam_config]
     else:
@@ -187,7 +190,7 @@ if __name__ == "__main__":
         features_name,
         label_name,
     ) in yeild_configs(dataset_param_grid, partitioner_param_grid):
-        fds = FederatedDataset(**fds_kwargs)
+        fds = create_fds(fds_kwargs)
         optimizer_configs_grid = ParameterGrid(optimizer_configs_to_be_grid)
         for optimizer in optimizer_configs_grid:
             print("Optimizer config:")
@@ -199,8 +202,12 @@ if __name__ == "__main__":
                 wandb.init(
                     project="fl-heterogeneity",
                     name=f"{experiment_name}/{fds_kwargs['dataset']}/"
-                    f"{fds_kwargs['partitioners']['train'].__class__.__name__}/{optimizer_class.__name__+str(optimizer_kwargs).replace(' ', '')}",
+                    f"{fds_kwargs['partitioners']['train'].__class__.__name__}({list(partitioner_kwargs.values())})/{optimizer_class.__name__}({optimizer_kwargs})",
+                    group=f"{fds_kwargs['dataset']}",
+                    tags=[f"{fds_kwargs['partitioners']['train'].__class__.__name__}", f"{optimizer_class.__name__}"],
                 )
+                
+                wandb.config.update({"fds": fds_kwargs, "partitioner": partitioner_kwargs, "fl_config": fl_config, "optimizer": optimizer})
                 print(
                     f"Running Heterogeneity for {fds_kwargs['dataset']} with {fds_kwargs['partitioners']['train'].__class__.__name__}"
                 )
@@ -230,7 +237,7 @@ if __name__ == "__main__":
                     fds_kwargs,
                     partitioner_kwargs,
                     optimizer_kwargs,
-                    results_directory_name,
+                    experiment_save_path,
                     metrics_train_list,
                     metrics_eval_list,
                     metrics_aggregated_train_list,
