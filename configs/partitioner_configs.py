@@ -18,7 +18,7 @@ config_dirichlet_partitioner = {
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "alpha": [0.1, 0.3, 1.0, 3.0, 10.0, 100.0, 1000.0],
-        "self_balancing": [False],
+        "self_balancing": [False, True],
     },
 }
 
