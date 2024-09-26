@@ -18,6 +18,7 @@ config_dirichlet_partitioner = {
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "alpha": [0.1, 0.3, 1.0, 3.0, 10.0, 100.0, 1000.0],
+        "self_balancing": [False],
     },
 }
 
@@ -46,7 +47,7 @@ config_pathological = {
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "num_classes_per_partition": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-        "class_assignment_mode": ["first-deterministic"],
+        "class_assignment_mode": ["deterministic", "random"],
     },
 }
 
