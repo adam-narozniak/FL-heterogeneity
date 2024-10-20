@@ -43,6 +43,7 @@ def run_fl(
     optimier_kwargs,
     features_name: str,
     label_name: str,
+    train_frac: float,
 ):
     # seed in torch for model weights init + dataloader shuffling
     seed = fl_config["seed"]
@@ -54,7 +55,8 @@ def run_fl(
             fds,
             features_name=features_name,
             label_name=label_name,
-            seed=42,
+            train_frac=train_frac,
+            seed=fds_kwargs["seed"],
         )
         dataset_name = fds.load_split("train").info.dataset_name
         num_classes = len(fds.load_split("train").unique(label_name))
@@ -230,6 +232,7 @@ if __name__ == "__main__":
                     optimizer_kwargs,
                     features_name,
                     label_name,
+                    train_frac,
                 )
                 experiment_save_path = f"{results_directory_name}/{fds_kwargs['dataset']}/"\
                     f"{fds_kwargs['partitioners']['train'].__class__.__name__}/"\
