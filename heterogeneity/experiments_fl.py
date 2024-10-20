@@ -189,6 +189,7 @@ if __name__ == "__main__":
         partitioner_kwargs,
         features_name,
         label_name,
+        train_frac,
     ) in yeild_configs(dataset_param_grid, partitioner_param_grid):
         fds = create_fds(fds_kwargs)
         optimizer_configs_grid = ParameterGrid(optimizer_configs_to_be_grid)

@@ -26,7 +26,7 @@ def create_apply_transforms(
 
 
 def create_dataloaders(
-    fds: FederatedDataset, features_name: str, label_name: str, seed: int = 42
+    fds: FederatedDataset, features_name: str, label_name: str, train_frac: float = 0.8, seed: int = 42
 ) -> Tuple[List[DataLoader], List[DataLoader], DataLoader]:
     num_partitions = fds.partitioners["train"].num_partitions
     partitions = [
@@ -52,7 +52,7 @@ def create_dataloaders(
     train_partitions = []
     test_partitions = []
     for partition in partitions:
-        split_partition = partition.train_test_split(train_size=0.8, seed=seed)
+        split_partition = partition.train_test_split(train_size=train_frac, seed=seed)
         train_partition, test_partition = (
             split_partition["train"],
             split_partition["test"],

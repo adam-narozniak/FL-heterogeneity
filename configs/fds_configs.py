@@ -5,7 +5,8 @@ config_mnist = {
     "partition_by": ["label"],
     "split": ["train"],
     "shuffle": [True],
-    "seed": list(range(42, 47))
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
 }
 
 config_cifar10 = {
@@ -15,7 +16,8 @@ config_cifar10 = {
     "partition_by": ["label"],
     "split": ["train"],
     "shuffle": [True],
-    "seed": list(range(42, 47))
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
 }
 
 config_cifar100 = {
@@ -25,7 +27,8 @@ config_cifar100 = {
     "partition_by": ["fine_label"],
     "split": ["train"],
     "shuffle": [True],
-    "seed": list(range(42, 47))
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
 }
 # Configure FEMNIST as if it didn't have the writer_id
 config_femnist_not_natural = {
@@ -35,7 +38,8 @@ config_femnist_not_natural = {
     "label_name": ["character"],
     "features_name": ["image"],
     "shuffle": [True],
-    "seed": list(range(42, 47))
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
 
 }
 
@@ -48,7 +52,8 @@ config_femnist = {
     "label_name": ["character"],
     "features_name": ["image"],
     "shuffle": [True],
-    "seed": list(range(42, 47))
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
 
 }
 
@@ -58,7 +63,8 @@ config_speech_commands = {
         "split": ["train"],
         "shuffle": [False],
         "partition_by": ["speaker_id"],
-        "label_name": ["label"]   
+        "label_name": ["label"],   
+        "train_frac": [0.8]
 }
 
 config_shakespeare = {
@@ -68,6 +74,7 @@ config_shakespeare = {
         "partition_by": ["character_id"],
         "label_name": ["y"],
         "features_name": ["x"],
+        "train_frac": [0.8]
 
 }
 
@@ -78,6 +85,7 @@ config_sentiment140 = {
         "partition_by": ["user"],
         "label_name": ["sentiment"],
         "features_name": ["text"],
+        "train_frac": [0.8]
 
 }
 

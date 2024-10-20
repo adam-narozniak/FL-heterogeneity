@@ -84,5 +84,6 @@ def yeild_configs(datasets_param_grid, partitioner_param_grid):
                         fds_kwargs.pop("partition_by")
                     label_name = fds_kwargs.pop("label_name")
                     features_name = fds_kwargs.pop("features_name")
+                    train_frac = fds_kwargs.pop("train_frac")
 
-                    yield fds_kwargs, partitioner_kwargs, features_name, label_name
+                    yield fds_kwargs, partitioner_kwargs, features_name, label_name, train_frac
