@@ -43,6 +43,17 @@ config_femnist_not_natural = {
 
 }
 
+config_fashion_mnist = {
+    "dataset": ["zalando-datasets/fashion_mnist"],
+    "label_name": ["label"],
+    "features_name": ["image"],
+    "partition_by": ["label"],
+    "split": ["train"],
+    "shuffle": [True],
+    "seed": list(range(42, 47)),
+    "train_frac": [0.8]
+}
+
 # NaturalID datasets
 
 config_femnist = {

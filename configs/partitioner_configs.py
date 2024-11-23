@@ -47,7 +47,7 @@ config_pathological = {
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
         "num_classes_per_partition": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-        "class_assignment_mode": ["deterministic", "random"],
+        "class_assignment_mode": ["first-deterministic", "deterministic", "random"],
     },
 }
 
@@ -55,7 +55,7 @@ config_pathological_deterministic = {
     "object": PathologicalPartitioner,
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
-        "num_classes_per_partition": [0.2, 0.3, 0.4, 0.5],
+        "num_classes_per_partition": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
         "class_assignment_mode": ["deterministic"],
     },
 }
@@ -64,7 +64,7 @@ config_pathological_random = {
     "object": PathologicalPartitioner,
     "param_grid": {
         "num_partitions": [3, 10, 30, 100, 300, 1000],
-        "num_classes_per_partition": [0.2, 0.3, 0.4, 0.5],
+        "num_classes_per_partition": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
         "class_assignment_mode": ["random"],
     },
 }
