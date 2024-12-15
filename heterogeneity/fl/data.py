@@ -38,7 +38,7 @@ def create_dataloaders(
     #     partitions[partition_id] = partition.flatten_indices()
 
     image_mode = (
-        "grayscale" if fds.load_split("train").info.dataset_name in ["mnist", "femnist"] else "rgb"
+        "grayscale" if fds.load_split("train").info.dataset_name in ["mnist", "femnist", "fashion_mnist"] else "rgb"
     )
 
     apply_transforms = create_apply_transforms(
