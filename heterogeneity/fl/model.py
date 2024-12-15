@@ -9,7 +9,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def get_net(dataset_name: str, num_classes):
-    if dataset_name in ["mnist", "femnist"]:  # image size 1x28x28
+    if dataset_name in ["mnist", "femnist", "fashion_mnist"]:  # image size 1x28x28
         net = CNNNetGray(num_classes=num_classes)
     elif dataset_name in ["cifar10", "cifar100"]:  # image size 3x32x32
         net = CNNNet(num_classes=num_classes)

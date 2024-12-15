@@ -12,6 +12,7 @@ from sklearn.model_selection import ParameterGrid
 from configs.fds_configs import (
     config_cifar10,
     config_cifar100,
+    config_fashion_mnist,
     config_femnist_not_natural,
     config_mnist,
     natural_datasets_param_grid,
@@ -136,6 +137,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     experiment_name: str = args.experiment_name
+    WANDB_project = "fl-heterogeneity-mnist"
     results_directory_name = Path(f"results/{experiment_name}")
     results_directory_name.mkdir(parents=True, exist_ok=True)
 
@@ -153,20 +155,21 @@ if __name__ == "__main__":
         dataset_param_grid = [
             # config_femnist_not_natural,
             config_mnist,
-            config_cifar10,
-            config_cifar100, 
+            # config_cifar10,
+            # config_cifar100, 
+            # config_fashion_mnist
         ]  # , ]
         partitioner_param_grid = [
-            # config_iid_partitioner,
-            # config_dirichlet_partitioner,
+            config_dirichlet_partitioner,
             config_pathological,
+            config_iid_partitioner,
         ]
         optimizer_configs_to_be_grid = [adam_config]
     else:
         raise ValueError(f"Invalid mode: {MODE}")
-    # Single seed
-    for dataset_param in dataset_param_grid:
-        dataset_param["seed"] = [42]
+    # # Single seed
+    # for dataset_param in dataset_param_grid:
+    #     dataset_param["seed"] = [42]
 
     # Save all the configs before starting the experiments
     for idx, dataset_param_grid_single in enumerate(dataset_param_grid):
@@ -181,9 +184,9 @@ if __name__ == "__main__":
         with open(results_directory_name / "fl_configs.txt", "a") as f:
             f.write(f"[{idx+1}/{len(fl_configs)}]\n")
             f.write(f"{fl_grid_single}\n")
-    for idx, optim_grid_single in enumerate(optimizer_configs):
+    for idx, optim_grid_single in enumerate(optimizer_configs_to_be_grid):
         with open(results_directory_name / "optim_configs.txt", "a") as f:
-            f.write(f"[{idx+1}/{len(optimizer_configs)}]\n")
+            f.write(f"[{idx+1}/{len(optimizer_configs_to_be_grid)}]\n")
             f.write(f"{optim_grid_single}\n")
 
     for (
@@ -203,7 +206,7 @@ if __name__ == "__main__":
 
             for fl_config in fl_configs:
                 wandb.init(
-                    project="fl-heterogeneity",
+                    project=WANDB_project,
                     name=f"{experiment_name}/{fds_kwargs['dataset']}/"
                     f"{fds_kwargs['partitioners']['train'].__class__.__name__}({list(partitioner_kwargs.values())})/{optimizer_class.__name__}({optimizer_kwargs})",
                     group=f"{fds_kwargs['dataset']}",

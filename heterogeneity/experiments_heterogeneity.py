@@ -12,6 +12,7 @@ from configs.fds_configs import (
     config_femnist,
     config_femnist_not_natural,
     config_mnist,
+    config_fashion_mnist,
     natural_datasets_param_grid,
     no_natural_datasets_param_grid,
 )
@@ -128,9 +129,9 @@ if __name__ == "__main__":
         print("Running CUSTOM")
         dataset_param_grid = [
             config_cifar10,
-            config_cifar100,
             config_mnist,
-            config_femnist_not_natural,
+            config_cifar100,
+            config_fashion_mnist,
         ]
         partitioner_param_grid = [
             config_iid_partitioner,
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Invalid MODE: {MODE}")
 
-    METRIC_MODE: str = "HELLINGER"
+    METRIC_MODE: str = "CUSTOM"
     if METRIC_MODE == "HELLINGER":
         metrics_configs = [metrics_hellinger]
     elif METRIC_MODE == "KL":
@@ -149,6 +150,11 @@ if __name__ == "__main__":
         metrics_configs = [metrics_earths_mover]
     elif METRIC_MODE == "ALL":
         metrics_configs = all_metrics
+    elif METRIC_MODE == "CUSTOM":
+        metrics_configs = [
+            metrics_hellinger,
+            metrics_earths_mover,
+        ]
     else:
         raise ValueError(f"Invalid METRIC_MODE: {METRIC_MODE}")
     for (

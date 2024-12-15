@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from flwr_datasets.partitioner import Partitioner
 from datasets import Dataset
+from datasets import concatenate_datasets
 from heterogeneity.metrics.utils import compute_distributions, compute_counts
 
 
@@ -24,7 +25,8 @@ def compute_hellinger_distance(
     #     partitions.append(partitioner.load_partition(i))
 
     # Calculate global distribution
-    global_distribution = compute_distributions(dataset[label_name], all_labels)
+    global_train_dataset = concatenate_datasets(partitions)
+    global_distribution = compute_distributions(global_train_dataset[label_name], all_labels)
 
     # Calculate (local) distribution for each client
     distributions = []
